@@ -26,11 +26,7 @@ class CalTable( pyt.IsDescription ):
     stderr = pyt.Float64Col( pos=7 )
     refcol = pyt.Int16Col( pos=8 )
     
-refs_file = open(ref_name)
-refs = []
-for ref in refs_file:
-    if ref[0] != '#': refs.append( ref.strip() )
-refs_file.close()
+refs = gcms.refs_file( ref_name )
 
 h5f = pyt.openFile(h5f_name, 'w', 'GCMS Calibrations')
 table = h5f.createTable('/', 'cals', CalTable, )

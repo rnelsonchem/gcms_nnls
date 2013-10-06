@@ -2,6 +2,14 @@ import numpy as np
 import netCDF4 as cdf
 import scipy.optimize as spo
 
+def refs_file(fname):
+    files = open(fname)
+    refs = []
+    for ref in files:
+        if ref[0] != '#': refs.append( ref.strip() )
+    files.close()
+    return refs
+
 class AIAFile(object):
     def __init__(self, fname):
         self.filename = fname

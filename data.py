@@ -16,11 +16,7 @@ data_folder = 'data'
 
 ##############################
 
-refs_file = open(ref_name)
-refs = []
-for ref in refs_file:
-    if ref[0] != '#': refs.append( ref.strip() )
-refs_file.close()
+refs = gcms.refs_file(ref_name)
 
 cal = pyt.openFile(cal_name)
 cal_table = cal.root.cals
@@ -30,7 +26,7 @@ h5f = pyt.openFile(data_name, 'w', 'Catalytic Runs')
 col_dict = {ref[:-4]: pyt.Float64Col() for ref in refs}
 col_dict['fname'] = pyt.StringCol(255, pos=0)
 
-data_table = h5f.createTable('/', 'Concentration data', col_dict)
+data_table = h5f.createTable('/', 'conc_data', col_dict, "Concentration Data")
 
 files = os.listdir(data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
