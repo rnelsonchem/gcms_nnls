@@ -30,7 +30,7 @@ h5f = pyt.openFile(data_name, 'w', 'Catalytic Runs')
 col_dict = {ref[:-4]: pyt.Float64Col() for ref in refs}
 col_dict['fname'] = pyt.StringCol(255, pos=0)
 
-data_table = h5f.createTable('/', 'data', col_dict)
+data_table = h5f.createTable('/', 'Concentration data', col_dict)
 
 files = os.listdir(data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
