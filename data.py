@@ -26,7 +26,16 @@ h5f = pyt.openFile(data_name, 'w', 'Catalytic Runs')
 col_dict = {ref[:-4]: pyt.Float64Col() for ref in refs}
 col_dict['fname'] = pyt.StringCol(255, pos=0)
 
+col_dict2 = {}
+for ref in refs:
+    col_dict2[ ref[:-4] ] = pyt.Float64Col()
+    col_dict2[ ref[:-4]+'_per' ] = pyt.Float64Col()
+#col_dict2 = {ref[:-4]: pyt.Float64Col() for ref in refs}
+col_dict2['fname'] = pyt.StringCol(255, pos=0)
+col_dict2['cpd_name'] = pyt.StringCol(255, pos=1)
+
 data_table = h5f.createTable('/', 'conc_data', col_dict, "Concentration Data")
+int_table = h5f.createTable('/', 'int_data', col_dict2, "Raw Integration Data")
 
 files = os.listdir(data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
@@ -41,14 +50,24 @@ for f in files:
 
     row = data_table.row
     row['fname'] = name
+
     for cpd in cal_table:
         cpd_name = cpd[0]
         start, stop = cpd[1], cpd[2]
         slope, intercept = cpd[3], cpd[4]
         column = cpd[8]
+
         ints = aia.integrate( start, stop )
-        conc = (ints[column] - intercept)/slope
+        ints_sum = ints.sum()
+        int_row = int_table.row
+        int_row['fname'] = name
+        int_row['cpd_name'] = cpd_name
+        for n, ref in enumerate(refs):
+            int_row[ ref[:-4] ] = ints[n]
+            int_row[ ref[:-4]+'_per' ] = ints[n]/ints_sum
+        int_row.append()
         
+        conc = (ints[column] - intercept)/slope
         row[ cpd_name ] = conc
 
         fit_max = aia.last_int_region.max()
