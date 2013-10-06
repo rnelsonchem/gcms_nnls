@@ -8,7 +8,7 @@ be well structured, as described below.
 ## Reference MS Files
 
 First of all, you are going to need a series of reference MS spectra to do the
-fitting. I got my references from (massBank)[http://www.massbank.jp/?lang=en].
+fitting. I got my references from [massBank](http://www.massbank.jp/?lang=en).
 The format of these files is important, so a couple of examples are provided
 in this repository (refcpd.txt and refcpd2.txt).
 
@@ -59,7 +59,7 @@ Another file is also generated during this process: cal.h5. This is a HDF5
 file that contains all of the calibration information for each standard. Do
 not delete this file; it is essential for the next step. This is a very simple
 file, and there are many tools for looking at the internals of an HDF5 file.
-For example, (ViTables)[http://vitables.org/] is recommended.
+For example, [ViTables](http://vitables.org/) is recommended.
 
 ## Process Sample Data
 
