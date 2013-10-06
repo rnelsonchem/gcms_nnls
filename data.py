@@ -16,11 +16,6 @@ data_folder = 'data'
 
 ##############################
 
-class DataTable( pyt.IsDescription ):
-    fname = pyt.StringCol(255, pos=0 )
-    cpd = pyt.StringCol( 50, pos=1 )
-    con = pyt.Float64Col( pos=2 )
-
 refs_file = open(ref_name)
 refs = []
 for ref in refs_file:
@@ -31,7 +26,11 @@ cal = pyt.openFile(cal_name)
 cal_table = cal.root.cals
 
 h5f = pyt.openFile(data_name, 'w', 'Catalytic Runs')
-data_table = h5f.createTable('/', 'data', DataTable)
+
+col_dict = {ref[:-4]: pyt.Float64Col() for ref in refs}
+col_dict['fname'] = pyt.StringCol(255, pos=0)
+
+data_table = h5f.createTable('/', 'data', col_dict)
 
 files = os.listdir(data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
@@ -45,17 +44,16 @@ for f in files:
     aia.nnls()
 
     row = data_table.row
+    row['fname'] = name
     for cpd in cal_table:
+        cpd_name = cpd[0]
         start, stop = cpd[1], cpd[2]
         slope, intercept = cpd[3], cpd[4]
         column = cpd[8]
         ints = aia.integrate( start, stop )
         conc = (ints[column] - intercept)/slope
         
-        row['fname'] = name
-        row['cpd'] = cpd[0]
-        row['con'] = conc
-        row.append()
+        row[ cpd_name ] = conc
 
         fit_max = aia.last_int_region.max()
 
@@ -68,8 +66,10 @@ for f in files:
         plt.xlim(start, stop)
         plt.ylim(ymax=fit_max*1.5)
         plt.title('Concentration = {:.2f}'.format(conc))
-        plt.savefig( os.path.join(data_folder, name+'_'+cpd[0]), dpi=200 )
+        plt.savefig( os.path.join(data_folder, name+'_'+cpd_name), dpi=200 )
         plt.close()
+
+    row.append()
 
 cal.close()
 
