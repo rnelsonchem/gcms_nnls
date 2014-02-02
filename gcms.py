@@ -68,6 +68,7 @@ class AIAFile(object):
     
         m, d = [], []
         for line in f:
+            if line[0] == '#': continue
             sp = line.split()
             m.append(sp[0])
             d.append(sp[1])
