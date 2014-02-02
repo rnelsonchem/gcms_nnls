@@ -1,3 +1,6 @@
+# Comment lines can be added if they begin with the '#' as shown
+# This is very important so that you can keep track of where these MS data
+# were retrieved, ID numbers, etc.
   27 11.09 111
   28 12.66 127
   29 6.65 67
