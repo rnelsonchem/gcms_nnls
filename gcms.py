@@ -82,15 +82,19 @@ class AIAFile(object):
         
         return ref_spec
 
-    def ref_build(self, files):
+    def ref_build(self, files, bkg=True, bkg_time=0.):
         ref_array = []
         ref_files = [i[:-4] for i in files]
 
         for f in files:
             temp = self._ref_extract(f)
             ref_array.append( temp )
-        ref_array.append( self.intensity[0] )
-        ref_files.append( 'Background' )
+        
+        if bkg == True:
+            bkg_idx = np.abs(self.times - bkg_time).argmin()
+            ref_array.append( self.intensity[bkg_idx] )
+            ref_files.append( 'Background' )
+            self._bkg_idx = bkg_idx
         
         self.ref_array = np.array(ref_array)
         self.ref_files = ref_files
