@@ -23,7 +23,7 @@ def get_args():
             help='Turn off the usage of a single  MS slice as a background in \
                     fitting.')
     
-    parser.add_argument('--bkg_time', default=0.0, type=float, 
+    parser.add_argument('--bkg_time', default='0.0',  
             help='The time position of the spectrum to use as a background for \
             fitting. This has no effect if "--nobkg" is used.' )
     

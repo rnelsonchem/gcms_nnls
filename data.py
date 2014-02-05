@@ -44,8 +44,8 @@ elif cal_table.attrs.bkg_time != args.bkg_time:
     warning = \
 '''Warning: The time for your background spectrum does not match the
 calibration data. This may affect the values of your analysis.
-Calibration background time = {:.3f}
-Data background time = {:.3f}
+Calibration background time = {}
+Data background time = {}
 '''
     print warning.format(cal_table.attrs.bkg_time, args.bkg_time)
 
@@ -75,7 +75,7 @@ for f in files:
     print 'Processing:', f
 
     aia = gcms.AIAFile( os.path.join(data_folder, f) )
-    aia.ref_build(refs, bkg=args.nobkg, bkg_time=args.bkg_time)
+    aia.ref_build(refs, bkg=args.nobkg, bkg_time=float(args.bkg_time) )
     aia.nnls()
 
     row = data_table.row

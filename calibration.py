@@ -71,7 +71,7 @@ for n, ref in enumerate(refs):
     for f in files:
         aia = gcms.AIAFile( os.path.join(name, f) )
 
-        aia.ref_build(refs, bkg=args.nobkg, bkg_time=args.bkg_time)
+        aia.ref_build(refs, bkg=args.nobkg, bkg_time=float(args.bkg_time))
         aia.nnls()
 
         integral = aia.integrate(start, stop)
