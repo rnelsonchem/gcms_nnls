@@ -16,24 +16,26 @@ data_folder = 'data'
 
 ##############################
 
+# Get the command line arguments
 args = gcms.get_args()
 
+# Process the file with the referece file names
 refs = gcms.refs_file(ref_name)
 
+# Open the calibration data file
 cal = pyt.openFile(cal_name)
 cal_table = cal.root.cals
 
+# Make a new hdf5 file for data from sample runs
 h5f = pyt.openFile(data_name, 'w', 'Catalytic Runs')
 
-col_dict = {ref[:-4]: pyt.Float64Col() for ref in refs}
+cal_cpds = [i[0] for i in cal_table]
+col_dict = {cal_cpd: pyt.Float64Col() for cal_cpd in cal_cpds}
 col_dict['fname'] = pyt.StringCol(255, pos=0)
 
-col_dict2 = {}
-for ref in refs:
-    col_dict2[ ref[:-4] ] = pyt.Float64Col()
-    col_dict2[ ref[:-4]+'_per' ] = pyt.Float64Col()
-#col_dict2 = {ref[:-4]: pyt.Float64Col() for ref in refs}
-col_dict2['fname'] = pyt.StringCol(255, pos=0)
+col_dict2 = col_dict.copy()
+for cal_cpd in cal_cpds:
+    col_dict2[ cal_cpd+'_per' ] = pyt.Float64Col()
 col_dict2['cpd_name'] = pyt.StringCol(255, pos=1)
 
 int_table = h5f.createTable('/', 'int_data', col_dict2, "Raw Integration Data")
@@ -67,9 +69,9 @@ for f in files:
         int_row = int_table.row
         int_row['fname'] = name
         int_row['cpd_name'] = cpd_name
-        for n, ref in enumerate(refs):
-            int_row[ ref[:-4] ] = ints[n]
-            int_row[ ref[:-4]+'_per' ] = ints[n]/ints_sum
+        for n, cal_cpd in enumerate(cal_cpds):
+            int_row[ cal_cpd ] = ints[n]
+            int_row[ cal_cpd+'_per' ] = ints[n]/ints_sum
         int_row.append()
         
         conc = (ints[column] - intercept)/slope
