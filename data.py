@@ -26,6 +26,29 @@ refs = gcms.refs_file(ref_name)
 cal = pyt.openFile(cal_name)
 cal_table = cal.root.cals
 
+# Warn if background info is not the same for calibrations and data analysis
+if cal_table.attrs.bkg != args.nobkg:
+    if cal_table.attrs.bkg == True:
+        print \
+'''Warning: Your calibration data was run with a background subtraction. 
+This may affect the analysis values.
+'''
+
+    else:
+        print \
+'''Warning: Your calibration data was not run with a background subtraction.
+This may affect the analysis values.
+'''
+
+elif cal_table.attrs.bkg_time != args.bkg_time:
+    warning = \
+'''Warning: The time for your background spectrum does not match the
+calibration data. This may affect the values of your analysis.
+Calibration background time = {:.3f}
+Data background time = {:.3f}
+'''
+    print warning.format(cal_table.attrs.bkg_time, args.bkg_time)
+
 # Make a new hdf5 file for data from sample runs
 h5f = pyt.openFile(data_name, 'w', 'Catalytic Runs')
 
