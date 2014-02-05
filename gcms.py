@@ -1,3 +1,5 @@
+import argparse
+
 import numpy as np
 import netCDF4 as cdf
 import scipy.optimize as spo
@@ -9,6 +11,24 @@ def refs_file(fname):
         if ref[0] != '#': refs.append( ref.strip() )
     files.close()
     return refs
+
+
+def get_args():
+    # Get command line values
+    parser = argparse.ArgumentParser()
+    
+    # This is a little backwards. If you request no background, this argument gets
+    # set to False. That is because of the call to ref_build later.
+    parser.add_argument('--nobkg', action='store_const', default=True, const=False,
+            help='Turn off the usage of a single  MS slice as a background in \
+                    fitting.')
+    
+    parser.add_argument('--bkg_time', default=0.0, type=float, 
+            help='The time position of the spectrum to use as a background for \
+            fitting. This has no effect if "--nobkg" is used.' )
+    
+    return parser.parse_args()
+
 
 class AIAFile(object):
     def __init__(self, fname):

@@ -16,6 +16,8 @@ data_folder = 'data'
 
 ##############################
 
+args = gcms.get_args()
+
 refs = gcms.refs_file(ref_name)
 
 cal = pyt.openFile(cal_name)
@@ -34,8 +36,11 @@ for ref in refs:
 col_dict2['fname'] = pyt.StringCol(255, pos=0)
 col_dict2['cpd_name'] = pyt.StringCol(255, pos=1)
 
-data_table = h5f.createTable('/', 'conc_data', col_dict, "Concentration Data")
 int_table = h5f.createTable('/', 'int_data', col_dict2, "Raw Integration Data")
+int_table.attrs.bkg = args.nobkg
+int_table.attrs.bkg_time = args.bkg_time
+
+data_table = h5f.createTable('/', 'conc_data', col_dict, "Concentration Data")
 
 files = os.listdir(data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
@@ -45,7 +50,7 @@ for f in files:
     print 'Processing:', f
 
     aia = gcms.AIAFile( os.path.join(data_folder, f) )
-    aia.ref_build( refs )
+    aia.ref_build(refs, bkg=args.nobkg, bkg_time=args.bkg_time)
     aia.nnls()
 
     row = data_table.row
