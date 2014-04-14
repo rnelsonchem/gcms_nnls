@@ -19,9 +19,6 @@ data_folder = 'data'
 # Get the command line arguments
 args = gcms.get_args()
 
-# Process the file with the referece file names
-refs = gcms.refs_file(ref_name)
-
 # Open the calibration data file
 cal = pyt.openFile(cal_name)
 cal_table = cal.root.cals
@@ -75,7 +72,7 @@ for f in files:
     print 'Processing:', f
 
     aia = gcms.AIAFile( os.path.join(data_folder, f) )
-    aia.ref_build(refs, bkg=args.nobkg, bkg_time=float(args.bkg_time) )
+    aia.ref_build(ref_name, bkg=args.nobkg, bkg_time=float(args.bkg_time) )
     aia.nnls()
 
     row = data_table.row

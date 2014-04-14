@@ -1,4 +1,5 @@
 import argparse
+import re
 
 import numpy as np
 import netCDF4 as cdf
@@ -95,22 +96,66 @@ class AIAFile(object):
             d.append(sp[1])
         f.close()
         
-        m = np.array(m, dtype=int)
-        d = np.array(d, dtype=float)
-    
-        ref_spec = np.zeros(self.masses.size, dtype=float)
-        ref_spec[m - self.masses.min()] = d
-        ref_spec = ref_spec/ref_spec.max()
-        
+        ref_spec = self._ref_extend(m, d)
+
         return ref_spec
 
-    def ref_build(self, files, bkg=True, bkg_time=0.):
-        ref_array = []
-        ref_files = [i[:-4] for i in files]
+    def _ref_extend(self, masses, intensities):
+        masses = np.array(masses, dtype=int)
+        intensities = np.array(intensities, dtype=float)
 
-        for f in files:
-            temp = self._ref_extract(f)
-            ref_array.append( temp )
+        spec = np.zeros(self.masses.size, dtype=float)
+        spec[masses - self.masses.min()] = intensities
+        return spec/spec.max()
+
+    def _txt_file(self, fname):
+        files = open(fname)
+        refs = []
+        for ref in files:
+            if ref[0] != '#': refs.append( ref.strip() )
+        files.close()
+        return refs
+
+    def _msl_file(self, fname):
+        regex = r'\(\s*(\d*)\s*(\d*)\)'
+        recomp = re.compile(regex)
+        
+        f = open(fname)
+
+        ref_names = []
+        ref_inten = []
+
+        for line in f:
+            if 'NAME' in line:
+                sp = line.split(':')
+                ref_names.append(sp[1])
+            elif 'NUM PEAK' in line:
+                inten = []
+                mass = []
+                while not line.isspace():
+                    vals = recomp.findall(line)
+                    for val in vals:
+                        mass.append(val[0])
+                        inten.append(val[1])
+                    line = next(f)
+                ref = self._ref_extend(mass, inten)
+                ref_inten.append(ref)
+        
+        return ref_names, ref_inten
+            
+    def ref_build(self, ref_file, bkg=True, bkg_time=0.):
+        if ref_file[-3:].lower() == 'txt':
+            ref_array = []
+
+            files = self._txt_file(ref_file)
+            ref_files = [i[:-4] for i in files]
+
+            for f in files:
+                temp = self._ref_extract(f)
+                ref_array.append( temp )
+
+        if ref_file[-3:].lower() == 'msl':
+            ref_files, ref_array = self._msl_file(ref_file)
         
         if bkg == True:
             bkg_idx = np.abs(self.times - bkg_time).argmin()
