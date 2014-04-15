@@ -51,8 +51,7 @@ class AIAFile(object):
         mass_max = np.int( np.round( mass_cdf.max() ) )
         masses = np.arange(mass_min, mass_max +1)
         
-        inten_cdf = np.array( data.variables['intensity_values'][:],
-                dtype=float) # Does this have to be float not float32
+        inten_cdf = data.variables['intensity_values'][:]
 
         intens = []
         start = 0
@@ -67,12 +66,13 @@ class AIAFile(object):
             mass_tmp = mass_cdf[start:start+point]
             ints_tmp = inten_cdf[start:start+point]
             
-            df_dict = {'round': np.round(mass_tmp), 'ints': ints_tmp}
+            df_dict = {'round': np.round(mass_tmp).astype(int, copy=False), 
+                    'ints': ints_tmp}
             df = pds.DataFrame(df_dict)
             group = df.groupby('round').mean()
 
             mass_tmp2 = np.asarray(group.index, dtype=int)
-            ints_tmp2 = np.asarray(group, dtype=float)
+            ints_tmp2 = np.asarray(group)
             
             mask = mass_tmp2 - mass_min
             int_zero[mask] = ints_tmp2
