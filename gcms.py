@@ -4,6 +4,7 @@ import re
 import numpy as np
 import netCDF4 as cdf
 import scipy.optimize as spo
+import pandas as pds
 
 def refs_file(fname):
     files = open(fname)
@@ -41,26 +42,22 @@ class AIAFile(object):
         data = cdf.Dataset(self.filename)
 
         points = data.variables['point_count'][:]
-        points_max = points.max()
 
         times_cdf = data.variables['scan_acquisition_time']
         times = times_cdf[:]/60.
 
-        mass_cdf = np.array( data.variables['mass_values'][:], dtype=int)
-        mass_min = mass_cdf.min()
-        mass_max = mass_cdf.max()
+        mass_cdf = data.variables['mass_values'][:]
+        mass_min = np.int( np.round( mass_cdf.min() ) )
+        mass_max = np.int( np.round( mass_cdf.max() ) )
         masses = np.arange(mass_min, mass_max +1)
         
         inten_cdf = np.array( data.variables['intensity_values'][:],
-                dtype=float)
+                dtype=float) # Does this have to be float not float32
 
         intens = []
         start = 0
         
-        for index in xrange( len(times) ):
-            point = points[index]
-            time = times[index]
-            
+        for point in points:
             int_zero = np.zeros(masses.size, dtype=float)
             
             if point == 0: 
@@ -68,9 +65,17 @@ class AIAFile(object):
                 continue
                 
             mass_tmp = mass_cdf[start:start+point]
+            ints_tmp = inten_cdf[start:start+point]
+            
+            df_dict = {'round': np.round(mass_tmp), 'ints': ints_tmp}
+            df = pds.DataFrame(df_dict)
+            group = df.groupby('round').mean()
 
-            ints = inten_cdf[start:start+point]
-            int_zero[mass_tmp - mass_min] = ints
+            mass_tmp2 = np.asarray(group.index, dtype=int)
+            ints_tmp2 = np.asarray(group, dtype=float)
+            
+            mask = mass_tmp2 - mass_min
+            int_zero[mask] = ints_tmp2
 
             intens.append( int_zero )
 
