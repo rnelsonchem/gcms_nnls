@@ -19,11 +19,11 @@ def get_args():
     # Get command line values
     parser = argparse.ArgumentParser()
     
-    # This is a little backwards. If you request no background, this argument gets
-    # set to False. That is because of the call to ref_build later.
-    parser.add_argument('--nobkg', action='store_const', default=True, const=False,
-            help='Turn off the usage of a single  MS slice as a background in \
-                    fitting.')
+    # This is a little backwards. If you request no background, this argument
+    # gets set to False. That is because of the call to ref_build later.
+    parser.add_argument('--nobkg', action='store_const', default=True,
+            const=False, help='Turn off the usage of a single  MS slice as a \
+            background in fitting.')
     
     parser.add_argument('--bkg_time', default='0.0',  
             help='The time position of the spectrum to use as a background for \
@@ -89,12 +89,17 @@ class AIAFile(object):
 
         self.tic = self.intensity.sum(axis=1)
 
+
     def _ref_extract(self, fname):
         f = open(fname)
+        name = fname[:-4]
+        self.ref_meta[name] = []
     
         m, d = [], []
         for line in f:
-            if line[0] == '#': continue
+            if line[0] == '#': 
+                self.ref_meta[name].append(line[1:].strip())
+                continue
             if line.isspace(): continue
             sp = line.split()
             m.append(sp[0])
@@ -103,7 +108,8 @@ class AIAFile(object):
         
         ref_spec = self._ref_extend(m, d)
 
-        return ref_spec
+        self.ref_array.append(ref_spec)
+
 
     def _ref_extend(self, masses, intensities):
         masses = np.array(masses, dtype=int)
@@ -113,6 +119,7 @@ class AIAFile(object):
         spec[masses - self.masses.min()] = intensities
         return spec/spec.max()
 
+
     def _txt_file(self, fname):
         files = open(fname)
         refs = []
@@ -121,55 +128,73 @@ class AIAFile(object):
         files.close()
         return refs
 
+
+    def _msl_ref1(self, fobj, name, recomp):
+        for line in fobj:
+            space = line.isspace()
+
+            if 'NUM PEAK' in line:
+                inten = []
+                mass = []
+                while not space:
+                    vals = recomp.findall(line)
+                    for val in vals:
+                        mass.append(val[0])
+                        inten.append(val[1])
+                    line = next(fobj)
+                    space = line.isspace()
+                ref = self._ref_extend(mass, inten)
+                self.ref_array.append(ref)
+                if space:
+                    return None
+
+            elif not space:
+                meta = line.split(':')
+                self.ref_meta[name][meta[0]] = meta[1].strip()
+
+            if space:
+                return None
+
+
     def _msl_file(self, fname):
         regex = r'\(\s*(\d*)\s*(\d*)\)'
         recomp = re.compile(regex)
         
         f = open(fname)
 
-        ref_names = []
-        ref_inten = []
-
         for line in f:
             if 'NAME' in line:
                 sp = line.split(':')
-                ref_names.append(sp[1])
-            elif 'NUM PEAK' in line:
-                inten = []
-                mass = []
-                while not line.isspace():
-                    vals = recomp.findall(line)
-                    for val in vals:
-                        mass.append(val[0])
-                        inten.append(val[1])
-                    line = next(f)
-                ref = self._ref_extend(mass, inten)
-                ref_inten.append(ref)
-        
-        return ref_names, ref_inten
+                name = sp[1].strip()
+                self.ref_files.append(name)
+                self.ref_meta[name] = {}
+                self._msl_ref1(f, name=name, recomp=recomp)
+
             
     def ref_build(self, ref_file, bkg=True, bkg_time=0.):
+        self.ref_array = []
+        self.ref_files = []
+        self.ref_meta = {}
+
         if ref_file[-3:].lower() == 'txt':
-            ref_array = []
 
             files = self._txt_file(ref_file)
-            ref_files = [i[:-4] for i in files]
+            self.ref_files = [i[:-4] for i in files]
 
             for f in files:
-                temp = self._ref_extract(f)
-                ref_array.append( temp )
+                self._ref_extract(f)
 
         if ref_file[-3:].lower() == 'msl':
-            ref_files, ref_array = self._msl_file(ref_file)
+            self._msl_file(ref_file)
         
         if bkg == True:
             bkg_idx = np.abs(self.times - bkg_time).argmin()
-            ref_array.append( self.intensity[bkg_idx] )
-            ref_files.append( 'Background' )
+            self.ref_array.append( self.intensity[bkg_idx] )
+            self.ref_files.append( 'Background' )
             self._bkg_idx = bkg_idx
         
-        self.ref_array = np.array(ref_array)
-        self.ref_files = ref_files
+        self.ref_array = np.array(self.ref_array)
+
 
     def nnls(self, ):
         fits = []
@@ -179,6 +204,7 @@ class AIAFile(object):
             fits.append( fit )
 
         self.fits = np.array( fits )
+
 
     def integrate(self, start, stop):
         mask = (self.times > start) & (self.times < stop)
