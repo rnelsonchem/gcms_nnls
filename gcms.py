@@ -1,5 +1,6 @@
 import argparse
 import re
+from codecs import open
 
 import numpy as np
 import netCDF4 as cdf
@@ -156,11 +157,11 @@ class AIAFile(object):
                 return None
 
 
-    def _msl_file(self, fname):
+    def _msl_file(self, fname, encoding):
         regex = r'\(\s*(\d*)\s*(\d*)\)'
         recomp = re.compile(regex)
         
-        f = open(fname)
+        f = open(fname, encoding=encoding)
 
         for line in f:
             if 'NAME' in line:
@@ -171,7 +172,7 @@ class AIAFile(object):
                 self._msl_ref1(f, name=name, recomp=recomp)
 
             
-    def ref_build(self, ref_file, bkg=True, bkg_time=0.):
+    def ref_build(self, ref_file, bkg=True, bkg_time=0., encoding='ascii'):
         self.ref_array = []
         self.ref_files = []
         self.ref_meta = {}
@@ -185,7 +186,7 @@ class AIAFile(object):
                 self._ref_extract(f)
 
         if ref_file[-3:].lower() == 'msl':
-            self._msl_file(ref_file)
+            self._msl_file(ref_file, encoding)
         
         if bkg == True:
             bkg_idx = np.abs(self.times - bkg_time).argmin()
