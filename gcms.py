@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import argparse
 import re
 from codecs import open
@@ -132,6 +134,7 @@ class AIAFile(object):
 
     def _msl_ref1(self, fobj, name, recomp):
         for line in fobj:
+            if line[0] == '#': continue
             space = line.isspace()
 
             if 'NUM PEAK' in line:
@@ -164,7 +167,8 @@ class AIAFile(object):
         f = open(fname, encoding=encoding)
 
         for line in f:
-            if 'NAME' in line:
+            if line[0] == '#': continue
+            elif 'NAME' in line:
                 sp = line.split(':')
                 name = sp[1].strip()
                 self.ref_files.append(name)
@@ -209,12 +213,17 @@ class AIAFile(object):
 
     def integrate(self, start, stop):
         mask = (self.times > start) & (self.times < stop)
+
         chunk = self.fits[mask]
-        integral = chunk.sum( axis = 0 )
+        fit_ms = chunk[:,:,np.newaxis]*self.ref_array
+        
+        integral = fit_ms.sum( axis = (0,2) )
 
         self.last_int_start = start
         self.last_int_stop = stop
-        self.last_int_region = chunk
+        self.last_int_mask = mask
+        self.last_int_fits = chunk
+        self.last_int_ms = fit_ms
 
         return integral
 
