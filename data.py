@@ -7,20 +7,13 @@ import matplotlib.pyplot as plt
 #import chem.gcms as gcms
 import gcms
 
-#### User Modified Values ####
-
-ref_name = 'reference_files.txt'
-cal_name = 'cal.h5'
-data_name = 'data.h5'
 data_folder = 'data'
-
-##############################
 
 # Get the command line arguments
 args = gcms.get_args()
 
 # Open the calibration data file
-cal = pyt.openFile(cal_name)
+cal = pyt.openFile(args.cal_name)
 cal_table = cal.root.cals
 
 # Warn if background info is not the same for calibrations and data analysis
@@ -47,7 +40,7 @@ Data background time = {}
     print warning.format(cal_table.attrs.bkg_time, args.bkg_time)
 
 # Make a new hdf5 file for data from sample runs
-h5f = pyt.openFile(data_name, 'w', 'Catalytic Runs')
+h5f = pyt.openFile(args.data_name, 'w', 'Catalytic Runs')
 
 cal_cpds = [i[0] for i in cal_table]
 col_dict = {cal_cpd: pyt.Float64Col() for cal_cpd in cal_cpds}
@@ -58,11 +51,13 @@ for cal_cpd in cal_cpds:
     col_dict2[ cal_cpd+'_per' ] = pyt.Float64Col()
 col_dict2['cpd_name'] = pyt.StringCol(255, pos=1)
 
-int_table = h5f.createTable('/', 'int_data', col_dict2, "Raw Integration Data")
+int_table = h5f.createTable('/', 'int_data', col_dict2, 
+        "Raw Integration Data")
 int_table.attrs.bkg = args.nobkg
 int_table.attrs.bkg_time = args.bkg_time
 
-data_table = h5f.createTable('/', 'conc_data', col_dict, "Concentration Data")
+data_table = h5f.createTable('/', 'conc_data', col_dict, 
+        "Concentration Data")
 
 files = os.listdir(data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
@@ -72,7 +67,8 @@ for f in files:
     print 'Processing:', f
 
     aia = gcms.AIAFile( os.path.join(data_folder, f) )
-    aia.ref_build(ref_name, bkg=args.nobkg, bkg_time=float(args.bkg_time) )
+    aia.ref_build(args.ref_name, bkg=args.nobkg,
+            bkg_time=float(args.bkg_time) )
     aia.nnls()
 
     row = data_table.row
@@ -97,7 +93,7 @@ for f in files:
         conc = (ints[column] - intercept)/slope
         row[ cpd_name ] = conc
 
-        fit_max = aia.last_int_region.max()
+        fit_max = aia.last_int_fits.max()
 
         mask = (aia.times > start) & (aia.times < stop)
         tic_max = aia.tic[mask].max()
@@ -118,6 +114,6 @@ cal.close()
 h5f.flush()
 h5f.close()
 
-pyt.copyFile(data_name, data_name+'temp', overwrite=True)
-os.remove(data_name)
-os.rename(data_name+'temp', data_name)
+pyt.copyFile(args.data_name, args.data_name+'temp', overwrite=True)
+os.remove(args.data_name)
+os.rename(args.data_name+'temp', args.data_name)

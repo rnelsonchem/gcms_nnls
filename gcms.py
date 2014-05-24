@@ -32,6 +32,15 @@ def get_args():
             help='The time position of the spectrum to use as a background for \
             fitting. This has no effect if "--nobkg" is used.' )
     
+    parser.add_argument('--ref_name', default='reference_files.txt',  
+            help='The name of the file that contains the reference spectra.')
+    
+    parser.add_argument('--cal_name', default='cal.h5',  
+            help='The name of the calibration HDF file.')
+    
+    parser.add_argument('--data_name', default='data.h5',  
+            help='The name of the processed data HDF file.')
+    
     return parser.parse_args()
 
 

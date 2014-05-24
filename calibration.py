@@ -9,13 +9,6 @@ import matplotlib.pyplot as plt
 #import chem.gcms as gcms
 import gcms
 
-#### User Modified Values ####
-
-ref_name = 'reference_files.txt'
-h5f_name = 'cal.h5'
-
-##############################
-
 # Get the command line arguments
 args = gcms.get_args()
 
@@ -31,9 +24,9 @@ class CalTable( pyt.IsDescription ):
     stderr = pyt.Float64Col( pos=7 )
     refcol = pyt.Int16Col( pos=8 )
     
-refs = gcms.refs_file( ref_name )
+refs = gcms.refs_file( args.ref_name )
 
-h5f = pyt.openFile(h5f_name, 'w', 'GCMS Calibrations')
+h5f = pyt.openFile(args.cal_name, 'w', 'GCMS Calibrations')
 table = h5f.createTable('/', 'cals', CalTable, )
 # Here I'm storing the background information in case I need to know later.
 table.attrs.bkg = args.nobkg
@@ -71,7 +64,8 @@ for n, ref in enumerate(refs):
     for f in files:
         aia = gcms.AIAFile( os.path.join(name, f) )
 
-        aia.ref_build(ref_name, bkg=args.nobkg, bkg_time=float(args.bkg_time))
+        aia.ref_build(args.ref_name, bkg=args.nobkg,
+                bkg_time=float(args.bkg_time))
         aia.nnls()
 
         integral = aia.integrate(start, stop)
@@ -110,6 +104,6 @@ for n, ref in enumerate(refs):
 h5f.flush()
 h5f.close()
 
-pyt.copyFile(h5f_name, h5f_name+'temp', overwrite=True)
-os.remove(h5f_name)
-os.rename(h5f_name+'temp', h5f_name)
+pyt.copyFile(args.cal_name, args.cal_name+'temp', overwrite=True)
+os.remove(args.cal_name)
+os.rename(args.cal_name+'temp', args.cal_name)
