@@ -31,9 +31,8 @@ def get_args():
             help='The time position of the spectrum to use as a background for \
             fitting. This has no effect if "--nobkg" is used.' )
     
-    parser.add_argument('--ref_name', default='reference_files.txt',  
-            help='The name of the file that contains the reference spectra \
-            information.')
+    parser.add_argument('--ref_name', default='ref_specs.txt',  
+            help='The name of the file that contains the reference spectra.')
     
     parser.add_argument('--cal_name', default='cal.h5',  
             help='The name of the calibration HDF file.')
@@ -105,27 +104,6 @@ class AIAFile(object):
         self.tic = self.intensity.sum(axis=1)
 
 
-    def _ref_extract(self, fname):
-        f = open(fname)
-        name = fname[:-4]
-        self.ref_meta[name] = []
-    
-        m, d = [], []
-        for line in f:
-            if line[0] == '#': 
-                self.ref_meta[name].append(line[1:].strip())
-                continue
-            if line.isspace(): continue
-            sp = line.split()
-            m.append(sp[0])
-            d.append(sp[1])
-        f.close()
-        
-        ref_spec = self._ref_extend(m, d)
-
-        self.ref_array.append(ref_spec)
-
-
     def _ref_extend(self, masses, intensities):
         masses = np.array(masses, dtype=int)
         intensities = np.array(intensities, dtype=float)
@@ -136,15 +114,18 @@ class AIAFile(object):
 
 
     def _txt_file(self, fname):
-        files = open(fname)
-        refs = []
-        for ref in files:
-            if ref[0] != '#': refs.append( ref.strip() )
-        files.close()
-        return refs
+        f = open(fname)
 
+        for line in f:
+            if line[0] == '#': continue
+            elif 'NAME' in line:
+                sp = line.split(':')
+                name = sp[1].strip()
+                self.ref_files.append(name)
+                self.ref_meta[name] = {}
+                self._txt_ref(f, name=name)
 
-    def _msl_ref1(self, fobj, name, recomp):
+    def _txt_ref(self, fobj, name):
         for line in fobj:
             if line[0] == '#': continue
             space = line.isspace()
@@ -152,13 +133,14 @@ class AIAFile(object):
             if 'NUM PEAK' in line:
                 inten = []
                 mass = []
-                while not space:
-                    vals = recomp.findall(line)
-                    for val in vals:
-                        mass.append(val[0])
-                        inten.append(val[1])
-                    line = next(fobj)
-                    space = line.isspace()
+                for line in fobj:
+                    if line.isspace(): 
+                        space = True
+                        break
+                    vals = line.split()
+                    mass.append(vals[0])
+                    inten.append(vals[1])
+
                 ref = self._ref_extend(mass, inten)
                 self.ref_array.append(ref)
                 if space:
@@ -185,7 +167,35 @@ class AIAFile(object):
                 name = sp[1].strip()
                 self.ref_files.append(name)
                 self.ref_meta[name] = {}
-                self._msl_ref1(f, name=name, recomp=recomp)
+                self._msl_ref(f, name=name, recomp=recomp)
+
+
+    def _msl_ref(self, fobj, name, recomp):
+        for line in fobj:
+            if line[0] == '#': continue
+            space = line.isspace()
+
+            if 'NUM PEAK' in line:
+                inten = []
+                mass = []
+                while not space:
+                    vals = recomp.findall(line)
+                    for val in vals:
+                        mass.append(val[0])
+                        inten.append(val[1])
+                    line = next(fobj)
+                    space = line.isspace()
+                ref = self._ref_extend(mass, inten)
+                self.ref_array.append(ref)
+                if space:
+                    return None
+
+            elif not space:
+                meta = line.split(':')
+                self.ref_meta[name][meta[0]] = meta[1].strip()
+
+            if space:
+                return None
 
             
     def ref_build(self, ref_file, bkg=True, bkg_time=0., encoding='ascii'):
@@ -195,11 +205,7 @@ class AIAFile(object):
 
         if ref_file[-3:].lower() == 'txt':
 
-            files = self._txt_file(ref_file)
-            self.ref_files = [i[:-4] for i in files]
-
-            for f in files:
-                self._ref_extract(f)
+            self._txt_file(ref_file)
 
         if ref_file[-3:].lower() == 'msl':
             self._msl_file(ref_file, encoding)
