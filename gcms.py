@@ -17,7 +17,6 @@ def refs_file(fname):
     files.close()
     return refs
 
-
 def get_args():
     # Get command line values
     parser = argparse.ArgumentParser()
@@ -33,11 +32,15 @@ def get_args():
             fitting. This has no effect if "--nobkg" is used.' )
     
     parser.add_argument('--ref_name', default='reference_files.txt',  
-            help='The name of the file that contains the reference spectra.')
+            help='The name of the file that contains the reference spectra \
+            information.')
     
     parser.add_argument('--cal_name', default='cal.h5',  
             help='The name of the calibration HDF file.')
     
+    parser.add_argument('--cal_folder', default='calibration',  
+            help='The folder that contains the calibration files.')
+
     parser.add_argument('--data_name', default='data.h5',  
             help='The name of the processed data HDF file.')
     
