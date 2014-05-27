@@ -21,7 +21,7 @@ def get_args():
     
     parser.add_argument('--bkg_time', default='0.0',  
             help='The time position of the spectrum to use as a background for \
-            fitting. This has no effect if "--nobkg" is used.' )
+            fitting. This has no effect if "nobkg" is used.' )
     
     parser.add_argument('--ref_name', default='ref_specs.txt',  
             help='The name of the file that contains the reference spectra.')
@@ -38,6 +38,22 @@ def get_args():
     parser.add_argument('--data_folder', default='data',  
             help='The name of folder containing the data files.')
     
+    parser.add_argument('--cal_type', default='conc',  
+            help='The type of calibration that was done for these samples. \
+            conc = Typical concentration curve; internal = internal standard.')
+
+    parser.add_argument('--standard', default='octane',  
+            help='The internal standard used for calibration. Only used if \
+            cal_type == "internal".')
+
+    parser.add_argument('--std_start', default=7.0,  type=float,
+            help='The start time for integration of the internal standard. \
+            Only valid if cal_type == "internal".')
+
+    parser.add_argument('--std_stop', default=7.4,  type=float,
+            help='The stop time for integration of the internal standard. \
+            Only valid if cal_type == "internal".')
+
     return parser.parse_args()
 
 

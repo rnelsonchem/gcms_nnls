@@ -31,6 +31,11 @@ def cal_h5_build(args):
     # later.
     table.attrs.bkg = args.nobkg
     table.attrs.bkg_time = args.bkg_time
+    table.attrs.cal_type = args.cal_type
+    if args.cal_type == 'internal':
+        table.attrs.standard = args.standard
+        table.attrs.std_start = args.std_start
+        table.attrs.std_stop = args.std_stop
 
     return h5f, table
 
@@ -64,30 +69,47 @@ def aia_build(ref_file, args=args):
 
     aia.nnls()
 
+    if args.cal_type == 'internal':
+        integral = aia.integrate(args.std_start, args.std_stop)
+        n = aia.ref_files.index( args.standard )
+        aia.std_int = integral[n]
+
     return aia
 
 def int_extract(name, refs, aias, args):
     ints = []
     conc = []
+    if args.cal_type == 'internal':
+        stdint = []
+        stdcon = []
 
     plt.figure()
     for line in refs:
         aia = aias[ line[0] ]
+
         conc.append( line[1] )
         start, stop = [float(i) for i in line[2:4]]
         n = aia.ref_files.index(name)
 
         integral = aia.integrate(start, stop)
         ints.append( integral[n] )
-
         plt.plot(aia.times, aia.fits[:, n])
+
+        if args.cal_type == 'internal':
+            stdcon.append( line[4] )
+            stdint.append( aia.std_int )
 
     plt.xlim(start, stop)
     plt.savefig(os.path.join(args.cal_folder, name+'_'+'fits'), dpi=200)
     plt.close()
-            
+
     ints = np.array(ints, dtype=float)
     conc = np.array(conc, dtype=float)
+    if args.cal_type == 'internal':
+        stdint = np.array(stdint, dtype=float)
+        stdcon = np.array(stdcon, dtype=float)
+        ints = ints/stdint
+        conc = conc/stdcon
 
     slope, intercept, r, p, stderr = sps.linregress(conc, ints)
     cal_plot(name, args, ints, conc, slope, intercept, r)
