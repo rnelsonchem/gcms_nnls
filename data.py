@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 #import chem.gcms as gcms
 import gcms
 
-data_folder = 'data'
-
 # Get the command line arguments
 args = gcms.get_args()
 
@@ -59,14 +57,14 @@ int_table.attrs.bkg_time = args.bkg_time
 data_table = h5f.createTable('/', 'conc_data', col_dict, 
         "Concentration Data")
 
-files = os.listdir(data_folder)
+files = os.listdir(args.data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
 
 for f in files:
     name = f[:-4]
     print 'Processing:', f
 
-    aia = gcms.AIAFile( os.path.join(data_folder, f) )
+    aia = gcms.AIAFile( os.path.join(args.data_folder, f) )
     aia.ref_build(args.ref_name, bkg=args.nobkg,
             bkg_time=float(args.bkg_time) )
     aia.nnls()
@@ -104,7 +102,8 @@ for f in files:
         plt.xlim(start, stop)
         plt.ylim(ymax=fit_max*1.5)
         plt.title('Concentration = {:.2f}'.format(conc))
-        plt.savefig( os.path.join(data_folder, name+'_'+cpd_name), dpi=200 )
+        plt.savefig( os.path.join(args.data_folder, name+'_'+cpd_name), 
+                dpi=200 )
         plt.close()
 
     row.append()

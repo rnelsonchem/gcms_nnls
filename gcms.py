@@ -9,14 +9,6 @@ import netCDF4 as cdf
 import scipy.optimize as spo
 import pandas as pds
 
-def refs_file(fname):
-    files = open(fname)
-    refs = []
-    for ref in files:
-        if ref[0] != '#': refs.append( ref.strip() )
-    files.close()
-    return refs
-
 def get_args():
     # Get command line values
     parser = argparse.ArgumentParser()
@@ -42,6 +34,9 @@ def get_args():
 
     parser.add_argument('--data_name', default='data.h5',  
             help='The name of the processed data HDF file.')
+
+    parser.add_argument('--data_folder', default='data',  
+            help='The name of folder containing the data files.')
     
     return parser.parse_args()
 

@@ -13,9 +13,6 @@ import gcms
 # Get the command line arguments
 args = gcms.get_args()
 
-# Open the reference file
-#refs = gcms.refs_file( args.ref_name )
-
 def cal_h5_build(args):
     class CalTable( pyt.IsDescription ):
         cpd = pyt.StringCol( 50, pos=0 )
@@ -92,11 +89,23 @@ def int_extract(name, refs, aias, args):
     ints = np.array(ints, dtype=float)
     conc = np.array(conc, dtype=float)
 
-    return ints, conc
-
-def calibrate(name, args, ints, conc, table):
     slope, intercept, r, p, stderr = sps.linregress(conc, ints)
+    cal_plot(name, args, ints, conc, slope, intercept, r)
 
+    row = table.row
+    row['cpd'] = name
+    row['int_start'] = start
+    row['int_stop'] = stop
+    row['slope'] = slope
+    row['intercept'] = intercept
+    row['r'] = r
+    row['p'] = p
+    row['stderr'] = stderr
+    row['refcol'] = n
+    row.append()
+
+
+def cal_plot(name, args, ints, conc, slope, intercept, r):
     plt.figure()
     plt.plot(conc, slope*conc + intercept, 'k-')
     plt.plot(conc, ints, 'o', ms=8)
@@ -104,18 +113,6 @@ def calibrate(name, args, ints, conc, table):
     plt.text(30., ints.max()*0.8, text_string.format(slope, intercept, r**2))
     plt.savefig(os.path.join(args.cal_folder, name+'_cal_curve'), dpi=200)
     plt.close()
-
-    row = table.row
-    row['cpd'] = name
-#    row['int_start'] = start
-#    row['int_stop'] = stop
-    row['slope'] = slope
-    row['intercept'] = intercept
-    row['r'] = r
-    row['p'] = p
-    row['stderr'] = stderr
-#    row['refcol'] = n
-    row.append()
 
 
 if __name__ == '__main__':
@@ -130,8 +127,7 @@ if __name__ == '__main__':
     aias = dict( zip(ref_files, aias) )
 
     for name in refs:
-        ints, conc = int_extract(name, refs[name], aias, args)
-        calibrate(name, args, ints, conc, table)
+        int_extract(name, refs[name], aias, args)
 
 
     h5f.flush()
