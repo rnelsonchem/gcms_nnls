@@ -118,11 +118,13 @@ class AIAFile(object):
     def _ref_extend(self, masses, intensities):
         masses = np.array(masses, dtype=int)
         intensities = np.array(intensities, dtype=float)
+        mask = (masses > self.masses.min()) & (masses < self.masses.max())
+        masses = masses[mask] - self.masses.min()
+        intensities = intensities[mask]
 
         spec = np.zeros(self.masses.size, dtype=float)
-        spec[masses - self.masses.min()] = intensities
+        spec[masses] = intensities
         return spec/spec.max()
-
 
     def _txt_file(self, fname):
         f = open(fname)
