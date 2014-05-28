@@ -134,16 +134,10 @@ for f in files:
             conc = conc*std_cons[f]
         row[ cpd_name ] = conc
 
-        fit_max = aia.last_int_fits.max()
-
-        mask = (aia.times > start) & (aia.times < stop)
-        tic_max = aia.tic[mask].max()
-
-        plt.figure()
-        plt.plot(aia.times, aia.fits[:,column])
-        plt.plot(aia.times, aia.tic*fit_max*1.2/tic_max, 'k', color='0.5')
-        plt.xlim(start, stop)
-        plt.ylim(ymax=fit_max*1.5)
+        plt.plot(aia.times[aia.last_int_mask], 
+                aia.last_int_ms.sum(axis=2)[:,column])
+        plt.plot(aia.times[aia.last_int_mask], aia.tic[aia.last_int_mask],
+                'k', lw=1.5)
         plt.title('Concentration = {:.2f}'.format(conc))
         plt.savefig( os.path.join(args.data_folder, name+'_'+cpd_name), 
                 dpi=200 )

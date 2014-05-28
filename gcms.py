@@ -215,7 +215,6 @@ class AIAFile(object):
         self.ref_meta = {}
 
         if ref_file[-3:].lower() == 'txt':
-
             self._txt_file(ref_file)
 
         if ref_file[-3:].lower() == 'msl':
@@ -254,6 +253,7 @@ class AIAFile(object):
         self.last_int_mask = mask
         self.last_int_fits = chunk
         self.last_int_ms = fit_ms
+        self.integral = integral
 
         return integral
 
