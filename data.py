@@ -37,6 +37,31 @@ Data background time = {}
 '''
     print warning.format(cal_table.attrs.bkg_time, args.bkg_time)
 
+if cal_table.attrs.cal_type == 'internal' or args.cal_type == 'internal':
+    if cal_table.attrs.cal_type != args.cal_type:
+        warning =  \
+'''The calibration types do not match!
+Current selection: {}
+Used for calibration: {}
+Type changed to saved value from calibration data.
+'''
+        print warning.format(args.cal_type, cal_table.attrs.cal_type)
+        args.cal_type = cal_table.attrs.cal_type
+    
+    if cal_table.attrs.std_start != args.std_start or \
+            cal_table.attrs.std_stop != args.std_stop:
+        warning = \
+'''Internal standard integration times are mismatched.
+Cal start {:.3f}: Selected Start {:.3f}
+Cal stop  {:.3f}: Selected Stop {:.3f}
+Values changed to saved values from calibration data.
+'''
+        print warning.format(cal_table.attrs.std_start, args.std_start,
+                cal_table.attrs.std_stop, args.std_stop)
+        args.std_start = cal_table.attrs.std_start
+        args.std_stop = cal_table.attrs.std_stop
+    
+
 # Make a new hdf5 file for data from sample runs
 h5f = pyt.openFile(args.data_name, 'w', 'Catalytic Runs')
 
@@ -59,6 +84,16 @@ data_table = h5f.createTable('/', 'conc_data', col_dict,
 
 files = os.listdir(args.data_folder)
 files = [f for f in files if f[-3:] == 'CDF']
+if args.cal_type == 'internal':
+    std_cons = {}
+    f = open('data.csv')
+    next(f)
+    for line in f:
+        if line[0] == '#': continue
+        elif line.isspace(): continue
+        sp = line.split(',')
+        std_cons[sp[0]] = float(sp[1])
+
 
 for f in files:
     name = f[:-4]
@@ -68,6 +103,11 @@ for f in files:
     aia.ref_build(args.ref_name, bkg=args.nobkg,
             bkg_time=float(args.bkg_time) )
     aia.nnls()
+
+    if args.cal_type == 'internal':
+        integral = aia.integrate(args.std_start, args.std_stop)
+        n = aia.ref_files.index( args.standard )
+        aia.std_int = integral[n]
 
     row = data_table.row
     row['fname'] = name
@@ -83,12 +123,15 @@ for f in files:
         int_row = int_table.row
         int_row['fname'] = name
         int_row['cpd_name'] = cpd_name
+
         for n, cal_cpd in enumerate(cal_cpds):
             int_row[ cal_cpd ] = ints[n]
             int_row[ cal_cpd+'_per' ] = ints[n]/ints_sum
         int_row.append()
         
         conc = (ints[column] - intercept)/slope
+        if args.cal_type == 'internal':
+            conc = conc*std_cons[f]
         row[ cpd_name ] = conc
 
         fit_max = aia.last_int_fits.max()

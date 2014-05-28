@@ -132,7 +132,7 @@ def cal_plot(name, args, ints, conc, slope, intercept, r):
     plt.plot(conc, slope*conc + intercept, 'k-')
     plt.plot(conc, ints, 'o', ms=8)
     text_string = 'Slope: {:.2f}\nIntercept: {:.2f}\nR^2: {:.5f}'
-    plt.text(30., ints.max()*0.8, text_string.format(slope, intercept, r**2))
+    plt.text(0., ints.max()*0.8, text_string.format(slope, intercept, r**2))
     plt.savefig(os.path.join(args.cal_folder, name+'_cal_curve'), dpi=200)
     plt.close()
 
