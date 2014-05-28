@@ -223,7 +223,8 @@ class AIAFile(object):
         
         if bkg == True:
             bkg_idx = np.abs(self.times - bkg_time).argmin()
-            self.ref_array.append( self.intensity[bkg_idx] )
+            bkg = self.intensity[bkg_idx]/self.intensity[bkg_idx].max()
+            self.ref_array.append( bkg )
             self.ref_files.append( 'Background' )
             self._bkg_idx = bkg_idx
         
