@@ -1,4 +1,5 @@
 import os
+from multiprocessing import Pool
 
 import numpy as np
 import tables as pyt
@@ -93,13 +94,16 @@ if args.cal_type == 'internal':
         elif line.isspace(): continue
         sp = line.split(',')
         std_cons[sp[0]] = float(sp[1])
+    f.close()
 
 
-for f in files:
-    name = f[:-4]
-    print 'Processing:', f
+def chunker(seq, size):
+    return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
 
-    aia = gcms.AIAFile( os.path.join(args.data_folder, f) )
+
+def aia_proc(fname, args=args):
+    print 'Processing:', fname
+    aia = gcms.AIAFile( os.path.join(args.data_folder, fname) )
     aia.ref_build(args.ref_name, bkg=args.nobkg,
             bkg_time=float(args.bkg_time) )
     aia.nnls()
@@ -109,45 +113,56 @@ for f in files:
         n = aia.ref_files.index( args.standard )
         aia.std_int = integral[n]
 
-    row = data_table.row
-    row['fname'] = name
+    return aia
 
-    for cpd in cal_table:
-        cpd_name = cpd[0]
-        start, stop = cpd[1], cpd[2]
-        slope, intercept = cpd[3], cpd[4]
-        column = cpd[8]
 
-        ints = aia.integrate( start, stop )
-        ints_sum = ints.sum()
-        int_row = int_table.row
-        int_row['fname'] = name
-        int_row['cpd_name'] = cpd_name
+pool = Pool(4)
+for fs in chunker(files, 4):
+    aias = pool.map(aia_proc, fs)
 
-        for n, cal_cpd in enumerate(cal_cpds):
-            int_row[ cal_cpd ] = ints[n]
-            int_row[ cal_cpd+'_per' ] = ints[n]/ints_sum
-        int_row.append()
-        
-        conc = (ints[column] - intercept)/slope
-        if args.cal_type == 'internal':
-            conc = conc*std_cons[f]
-        row[ cpd_name ] = conc
-
-        plt.plot(aia.times[aia.last_int_mask], 
-                aia.last_int_ms.sum(axis=2)[:,column])
-        plt.plot(aia.times[aia.last_int_mask], aia.tic[aia.last_int_mask],
-                'k', lw=1.5)
-        plt.title('Concentration = {:.2f}'.format(conc))
-        plt.savefig( os.path.join(args.data_folder, name+'_'+cpd_name), 
-                dpi=200 )
-        plt.close()
-
-    row.append()
+    for aia in aias:
+        f = os.path.split(aia.filename)[-1]
+        name = f[:-4]
+    
+        row = data_table.row
+        row['fname'] = name
+    
+        for cpd in cal_table:
+            cpd_name = cpd[0]
+            start, stop = cpd[1], cpd[2]
+            slope, intercept = cpd[3], cpd[4]
+            column = cpd[8]
+    
+            ints = aia.integrate( start, stop )
+            ints_sum = ints.sum()
+            int_row = int_table.row
+            int_row['fname'] = name
+            int_row['cpd_name'] = cpd_name
+    
+            for n, cal_cpd in enumerate(cal_cpds):
+                int_row[ cal_cpd ] = ints[n]
+                int_row[ cal_cpd+'_per' ] = ints[n]/ints_sum
+            int_row.append()
+            
+            conc = (ints[column] - intercept)/slope
+            if args.cal_type == 'internal':
+                conc = conc*std_cons[f]
+            row[ cpd_name ] = conc
+   
+            mask = aia.last_int_mask
+            plt.plot(aia.times[mask], 
+                    aia.last_int_ms.sum(axis=2)[:,column])
+            plt.plot(aia.times[mask], aia.tic[mask], 'k', lw=1.5)
+            plt.title('Concentration = {:.2f}'.format(conc))
+            plt.savefig( 
+                    os.path.join(args.data_folder, name+'_'+cpd_name), 
+                    dpi=200 )
+            plt.close()
+    
+        row.append()
+        h5f.flush()
 
 cal.close()
-
-h5f.flush()
 h5f.close()
 
 pyt.copyFile(args.data_name, args.data_name+'temp', overwrite=True)
