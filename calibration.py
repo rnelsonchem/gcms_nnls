@@ -27,6 +27,7 @@ def cal_h5_build(args):
         
     h5f = pyt.openFile(args.cal_name, 'w', 'GCMS Calibrations')
     table = h5f.createTable('/', 'cals', CalTable, )
+
     # Here I'm storing the background information in case I need to know
     # later.
     table.attrs.bkg = args.nobkg
@@ -76,7 +77,7 @@ def aia_build(ref_file, args=args):
 
     return aia
 
-def int_extract(name, refs, aias, args):
+def int_extract(name, info, aias, args):
     ints = []
     conc = []
     if args.cal_type == 'internal':
@@ -84,16 +85,19 @@ def int_extract(name, refs, aias, args):
         stdcon = []
 
     plt.figure()
-    for line in refs:
+    for line in info:
         aia = aias[ line[0] ]
 
-        conc.append( line[1] )
         start, stop = [float(i) for i in line[2:4]]
         n = aia.ref_files.index(name)
-
         integral = aia.integrate(start, stop)
+
+        conc.append( line[1] )
         ints.append( integral[n] )
-        plt.plot(aia.times, aia.fits[:, n])
+        
+        mask = aia.last_int_mask
+        sim = aia.last_int_ms.sum(axis=2)
+        plt.plot(aia.times[mask], sim[:,n])
 
         if args.cal_type == 'internal':
             stdcon.append( line[4] )
@@ -132,7 +136,7 @@ def cal_plot(name, args, ints, conc, slope, intercept, r):
     plt.plot(conc, slope*conc + intercept, 'k-')
     plt.plot(conc, ints, 'o', ms=8)
     text_string = 'Slope: {:.2f}\nIntercept: {:.2f}\nR^2: {:.5f}'
-    plt.text(0., ints.max()*0.8, text_string.format(slope, intercept, r**2))
+    plt.text(0.5, ints.max()*0.8, text_string.format(slope, intercept, r**2))
     plt.savefig(os.path.join(args.cal_folder, name+'_cal_curve'), dpi=200)
     plt.close()
 
@@ -150,9 +154,8 @@ if __name__ == '__main__':
 
     for name in refs:
         int_extract(name, refs[name], aias, args)
+        h5f.flush()
 
-
-    h5f.flush()
     h5f.close()
     
     pyt.copyFile(args.cal_name, args.cal_name+'temp', overwrite=True)
