@@ -12,7 +12,10 @@ import pandas as pds
 def get_args():
     # Get command line values
     parser = argparse.ArgumentParser()
-    
+
+    parser.add_argument('--nproc', default=1,  type=int,
+            help='The number of cores to use for processing.')
+
     # This is a little backwards. If you request no background, this argument
     # gets set to False. That is because of the call to ref_build later.
     parser.add_argument('--nobkg', action='store_const', default=True,
@@ -244,17 +247,20 @@ class AIAFile(object):
 
     def integrate(self, start, stop):
         mask = (self.times > start) & (self.times < stop)
-
-        chunk = self.fits[mask]
-        fit_ms = chunk[:,:,np.newaxis]*self.ref_array
-        
-        integral = fit_ms.sum( axis = (0,2) )
-
         self.last_int_start = start
         self.last_int_stop = stop
+
+        chunk = self.fits[mask]
         self.last_int_mask = mask
         self.last_int_fits = chunk
+
+        fit_ms = chunk[:,:,np.newaxis]*self.ref_array
         self.last_int_ms = fit_ms
+
+        sim = fit_ms.sum(axis=2)
+        self.last_int_sim = sim
+        
+        integral = fit_ms.sum( axis = (0,2) )
         self.integral = integral
 
         return integral

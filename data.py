@@ -109,16 +109,19 @@ def aia_proc(fname, args=args):
     aia.nnls()
 
     if args.cal_type == 'internal':
-        integral = aia.integrate(args.std_start, args.std_stop)
+        aia.integrate(args.std_start, args.std_stop)
         n = aia.ref_files.index( args.standard )
-        aia.std_int = integral[n]
+        aia.std_int = aia.integral[n]
 
     return aia
 
 
-pool = Pool(4)
-for fs in chunker(files, 4):
-    aias = pool.map(aia_proc, fs)
+pool = Pool(args.nproc)
+for fs in chunker(files, args.nproc):
+    if args.nproc > 1:
+        aias = pool.map(aia_proc, fs)
+    else:
+        aias = [ aia_proc(fs[0]), ]
 
     for aia in aias:
         f = os.path.split(aia.filename)[-1]
@@ -133,7 +136,8 @@ for fs in chunker(files, 4):
             slope, intercept = cpd[3], cpd[4]
             column = cpd[8]
     
-            ints = aia.integrate( start, stop )
+            aia.integrate( start, stop )
+            ints = aia.integral
             ints_sum = ints.sum()
             int_row = int_table.row
             int_row['fname'] = name

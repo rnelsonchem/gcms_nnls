@@ -71,9 +71,9 @@ def aia_build(ref_file, args=args):
     aia.nnls()
 
     if args.cal_type == 'internal':
-        integral = aia.integrate(args.std_start, args.std_stop)
+        aia.integrate(args.std_start, args.std_stop)
         n = aia.ref_files.index( args.standard )
-        aia.std_int = integral[n]
+        aia.std_int = aia.integral[n]
 
     return aia
 
@@ -90,10 +90,10 @@ def int_extract(name, info, aias, args):
 
         start, stop = [float(i) for i in line[2:4]]
         n = aia.ref_files.index(name)
-        integral = aia.integrate(start, stop)
+        aia.integrate(start, stop)
 
         conc.append( line[1] )
-        ints.append( integral[n] )
+        ints.append( aia.integral[n] )
         
         mask = aia.last_int_mask
         sim = aia.last_int_ms.sum(axis=2)
@@ -146,9 +146,11 @@ if __name__ == '__main__':
 
     refs, ref_files = cal_file('calibration.csv')
 
-    p = Pool(4)
-    aias = p.map(aia_build, ref_files)
-#    aias = [aia_build(i) for i in ref_files]
+    if args.nproc == 1:
+        aias = [aia_build(i) for i in ref_files]
+    else:
+        p = Pool(args.nproc)
+        aias = p.map(aia_build, ref_files)
 
     aias = dict( zip(ref_files, aias) )
 
