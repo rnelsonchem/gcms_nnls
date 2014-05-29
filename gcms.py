@@ -263,5 +263,3 @@ class AIAFile(object):
         integral = fit_ms.sum( axis = (0,2) )
         self.integral = integral
 
-        return integral
-

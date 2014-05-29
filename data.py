@@ -154,8 +154,7 @@ for fs in chunker(files, args.nproc):
             row[ cpd_name ] = conc
    
             mask = aia.last_int_mask
-            plt.plot(aia.times[mask], 
-                    aia.last_int_ms.sum(axis=2)[:,column])
+            plt.plot(aia.times[mask], aia.last_int_sim[:,column])
             plt.plot(aia.times[mask], aia.tic[mask], 'k', lw=1.5)
             plt.title('Concentration = {:.2f}'.format(conc))
             plt.savefig( 

@@ -96,8 +96,7 @@ def int_extract(name, info, aias, args):
         ints.append( aia.integral[n] )
         
         mask = aia.last_int_mask
-        sim = aia.last_int_ms.sum(axis=2)
-        plt.plot(aia.times[mask], sim[:,n])
+        plt.plot(aia.times[mask], aia.last_int_sim[:,n])
 
         if args.cal_type == 'internal':
             stdcon.append( line[4] )
