@@ -74,6 +74,13 @@ def aia_build(ref_file, args=args):
         aia.integrate(args.std_start, args.std_stop)
         n = aia.ref_files.index( args.standard )
         aia.std_int = aia.integral[n]
+        
+        mask = aia.last_int_mask
+        plt.plot(aia.times[mask], aia.tic[mask], 'k', lw=2)
+        plt.plot(aia.times[mask], aia.last_int_sim[:,n])
+        plt.savefig( os.path.join(args.cal_folder, ref_file[:-4]+'_std'), 
+                dpi=200)
+        plt.close()
 
     return aia
 
