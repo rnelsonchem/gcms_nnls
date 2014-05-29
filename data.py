@@ -97,6 +97,7 @@ if args.cal_type == 'internal':
     f.close()
 
 
+# This function is from: http://stackoverflow.com/questions/434287
 def chunker(seq, size):
     return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
 
@@ -116,7 +117,9 @@ def aia_proc(fname, args=args):
     return aia
 
 
-pool = Pool(args.nproc)
+if args.nproc > 1:
+    pool = Pool(args.nproc)
+
 for fs in chunker(files, args.nproc):
     if args.nproc > 1:
         aias = pool.map(aia_proc, fs)
