@@ -194,13 +194,14 @@ class AIAFile(object):
             if 'NUM PEAK' in line:
                 inten = []
                 mass = []
-                while not space:
+                for line in fobj:
+                    if line.isspace():
+                        space = True
+                        break
                     vals = recomp.findall(line)
                     for val in vals:
                         mass.append(val[0])
                         inten.append(val[1])
-                    line = next(fobj)
-                    space = line.isspace()
                 ref = self._ref_extend(mass, inten)
                 self.ref_array.append(ref)
                 if space:
