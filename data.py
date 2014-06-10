@@ -151,9 +151,13 @@ for fs in chunker(files, args.nproc):
                 int_row[ cal_cpd+'_per' ] = ints[n]/ints_sum
             int_row.append()
             
-            conc = (ints[column] - intercept)/slope
             if args.cal_type == 'internal':
+                int_adj = ints[column]/aia.std_int
+                conc = (int_adj - intercept)/slope
                 conc = conc*std_cons[f]
+            else:
+                conc = (ints[column] - intercept)/slope
+
             row[ cpd_name ] = conc
    
             mask = aia.last_int_mask
