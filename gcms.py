@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 import argparse
 import re
 from codecs import open
+import itertools as it
 
 import numpy as np
 import netCDF4 as cdf
 import scipy.optimize as spo
-import pandas as pds
 
 def get_args():
     # Get command line values
@@ -66,6 +66,9 @@ class AIAFile(object):
     
         self._AIAproc()
 
+    def _groupkey(self, x):
+        return x[0]
+
     def _AIAproc(self, ):
         data = cdf.Dataset(self.filename)
 
@@ -91,17 +94,23 @@ class AIAFile(object):
                 intens.append( int_zero )
                 continue
                 
-            mass_tmp = mass_cdf[start:start+point]
+            mass_tmp = np.round( mass_cdf[start:start+point] ).astype(int)
             ints_tmp = inten_cdf[start:start+point]
             
-            df_dict = {'round': np.round(mass_tmp).astype(int, copy=False), 
-                    'ints': ints_tmp}
-            df = pds.DataFrame(df_dict)
-            group = df.groupby('round').mean()
-
-            mass_tmp2 = np.asarray(group.index, dtype=int)
-            ints_tmp2 = np.asarray(group)
-            
+            mass_tmp2 = []
+            ints_tmp2 = []
+            for mass, mass_int in it.groupby( zip(mass_tmp, ints_tmp),
+                    key=self._groupkey):
+                ints = [i[1] for i in mass_int]
+                if len(ints) > 1:
+                    ints = np.array( ints ).mean()
+                else:
+                    ints = ints[0]
+                mass_tmp2.append(mass)
+                ints_tmp2.append(ints)
+            mass_tmp2 = np.array(mass_tmp2)
+            ints_tmp2 = np.array(ints_tmp2)
+                    
             mask = mass_tmp2 - mass_min
             int_zero[mask] = ints_tmp2
 
