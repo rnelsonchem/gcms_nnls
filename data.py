@@ -96,6 +96,7 @@ if args.cal_type == 'internal':
         std_cons[sp[0]] = float(sp[1])
     f.close()
 
+gcms.clear_png(args.data_folder)
 
 # This function is from: http://stackoverflow.com/questions/434287
 def chunker(seq, size):

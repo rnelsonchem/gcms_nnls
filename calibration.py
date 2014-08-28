@@ -152,6 +152,8 @@ if __name__ == '__main__':
 
     refs, ref_files = cal_file('calibration.csv')
 
+    gcms.clear_png(args.cal_folder)
+
     if args.nproc == 1:
         aias = [aia_build(i) for i in ref_files]
     else:

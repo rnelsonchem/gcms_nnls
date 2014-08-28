@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import os
 import argparse
 import re
 from codecs import open
@@ -58,6 +59,12 @@ def get_args():
             Only valid if cal_type == "internal".')
 
     return parser.parse_args()
+
+
+def clear_png(folder):
+    for f in os.listdir(folder):
+        if f[-3:] == 'png':
+            os.remove( os.path.join(folder, f) )
 
 
 class AIAFile(object):
