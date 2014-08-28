@@ -113,6 +113,14 @@ def aia_proc(fname, args=args):
         aia.integrate(args.std_start, args.std_stop)
         n = aia.ref_files.index( args.standard )
         aia.std_int = aia.integral[n]
+        
+        mask = aia.last_int_mask
+        plt.plot(aia.times[mask], aia.last_int_sim[:,n])
+        plt.plot(aia.times[mask], aia.tic[mask], 'k', lw=1.5)
+        plt.savefig( 
+                os.path.join(args.data_folder, fname[:-4]+'_intstd'), 
+                dpi=200 )
+        plt.close()
 
     return aia
 
