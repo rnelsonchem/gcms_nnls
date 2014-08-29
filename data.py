@@ -11,93 +11,6 @@ import gcms
 # Get the command line arguments
 args = gcms.get_args()
 
-# Open the calibration data file
-cal = pyt.openFile(args.cal_name)
-cal_table = cal.root.cals
-
-# Warn if background info is not the same for calibrations and data analysis
-if cal_table.attrs.bkg != args.nobkg:
-    if cal_table.attrs.bkg == True:
-        print \
-'''Warning: Your calibration data was run with a background subtraction. 
-This may affect the analysis values.
-'''
-
-    else:
-        print \
-'''Warning: Your calibration data was not run with a background subtraction.
-This may affect the analysis values.
-'''
-
-elif cal_table.attrs.bkg_time != args.bkg_time:
-    warning = \
-'''Warning: The time for your background spectrum does not match the
-calibration data. This may affect the values of your analysis.
-Calibration background time = {}
-Data background time = {}
-'''
-    print warning.format(cal_table.attrs.bkg_time, args.bkg_time)
-
-if cal_table.attrs.cal_type == 'internal' or args.cal_type == 'internal':
-    if cal_table.attrs.cal_type != args.cal_type:
-        warning =  \
-'''The calibration types do not match!
-Current selection: {}
-Used for calibration: {}
-Type changed to saved value from calibration data.
-'''
-        print warning.format(args.cal_type, cal_table.attrs.cal_type)
-        args.cal_type = cal_table.attrs.cal_type
-    
-    if cal_table.attrs.std_start != args.std_start or \
-            cal_table.attrs.std_stop != args.std_stop:
-        warning = \
-'''Internal standard integration times are mismatched.
-Cal start {:.3f}: Selected Start {:.3f}
-Cal stop  {:.3f}: Selected Stop {:.3f}
-Values changed to saved values from calibration data.
-'''
-        print warning.format(cal_table.attrs.std_start, args.std_start,
-                cal_table.attrs.std_stop, args.std_stop)
-        args.std_start = cal_table.attrs.std_start
-        args.std_stop = cal_table.attrs.std_stop
-    
-
-# Make a new hdf5 file for data from sample runs
-h5f = pyt.openFile(args.data_name, 'w', 'Catalytic Runs')
-
-cal_cpds = [i[0] for i in cal_table]
-col_dict = {cal_cpd: pyt.Float64Col() for cal_cpd in cal_cpds}
-col_dict['fname'] = pyt.StringCol(255, pos=0)
-
-col_dict2 = col_dict.copy()
-for cal_cpd in cal_cpds:
-    col_dict2[ cal_cpd+'_per' ] = pyt.Float64Col()
-col_dict2['cpd_name'] = pyt.StringCol(255, pos=1)
-
-int_table = h5f.createTable('/', 'int_data', col_dict2, 
-        "Raw Integration Data")
-int_table.attrs.bkg = args.nobkg
-int_table.attrs.bkg_time = args.bkg_time
-
-data_table = h5f.createTable('/', 'conc_data', col_dict, 
-        "Concentration Data")
-
-files = os.listdir(args.data_folder)
-files = [f for f in files if f[-3:] == 'CDF']
-if args.cal_type == 'internal':
-    std_cons = {}
-    f = open('data.csv')
-    next(f)
-    for line in f:
-        if line[0] == '#': continue
-        elif line.isspace(): continue
-        sp = line.split(',')
-        std_cons[sp[0]] = float(sp[1])
-    f.close()
-
-gcms.clear_png(args.data_folder)
-
 # This function is from: http://stackoverflow.com/questions/434287
 def chunker(seq, size):
     return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
@@ -124,6 +37,49 @@ def aia_proc(fname, args=args):
         plt.close()
 
     return aia
+
+# Open the calibration data file
+cal = pyt.openFile(args.cal_name)
+cal_table = cal.root.cals
+
+gcms.table_check(cal_table, args)
+
+# Make a new hdf5 file for data from sample runs
+h5f = pyt.openFile(args.data_name, 'w', 'Catalytic Runs')
+
+cal_cpds = [i[0] for i in cal_table]
+col_dict = {cal_cpd: pyt.Float64Col() for cal_cpd in cal_cpds}
+col_dict['fname'] = pyt.StringCol(255, pos=0)
+
+col_dict2 = col_dict.copy()
+for cal_cpd in cal_cpds:
+    col_dict2[ cal_cpd+'_per' ] = pyt.Float64Col()
+col_dict2['cpd_name'] = pyt.StringCol(255, pos=1)
+
+int_table = h5f.createTable('/', 'int_data', col_dict2, 
+        "Raw Integration Data")
+int_table.attrs.bkg = args.nobkg
+int_table.attrs.bkg_time = args.bkg_time
+
+data_table = h5f.createTable('/', 'conc_data', col_dict, 
+        "Concentration Data")
+
+
+files = os.listdir(args.data_folder)
+files = [f for f in files if f[-3:] == 'CDF']
+if args.cal_type == 'internal':
+    std_cons = {}
+    f = open('data.csv')
+    next(f)
+    for line in f:
+        if line[0] == '#': continue
+        elif line.isspace(): continue
+        sp = line.split(',')
+        std_cons[sp[0]] = float(sp[1])
+    f.close()
+
+
+gcms.clear_png(args.data_folder)
 
 
 if args.nproc > 1:
