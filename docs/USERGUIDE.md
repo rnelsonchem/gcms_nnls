@@ -1,3 +1,48 @@
+# Getting started
+
+This document is broken into a few secions. First of all, there is information
+about getting a Python installation up and running. This is followed by a
+section on the basic usage of these programs to manipulate, plot, and execute
+simple non-negative least squares fits on GCMS datasets. The final section
+talks about generating calibration curves and automating data extraction with
+this calibration information. You can skip to that section if all you want to
+do is automate some data extractions. (It is not necessary to understand the
+data manipulation/plotting as that is automated in the final section.)
+
+# Installation
+
+To get all of the files from this repository, you should be able to download a
+zip file of the current state of the repository. (Look for the button shown
+below on the [main page of this
+repository](https://github.com/rnelsonchem/gcms_nnls).) Unzip this repository
+wherever you like.
+
+![Download zipfile button](./images/git_zip.png)
+
+In addition, you will also need a Python 2.7 installation with the libraries
+Numpy (v 1.9.1 tested), matplotlib (v 1.4.2 tested), netCDF4 (v 1.0.4 tested),
+PyTables (v 3.1.1 tested), and Scipy (v 0.14.0 tested).  Although not
+required, IPython (v 2.3.1 tested) provides a very useful advanced interactive
+Python interpreter, and examples in this documentation assume that you are
+using this environment.  
+
+Installing all of these packages can be time-consuming and error-prone, so it
+is best to start with an all-in-one package. In this case, the [Anaconda
+Python distribution](http://continuum.io/downloads) is a very nice option. It
+combines a large number of Python packages for scientific data analysis and a
+program (`conda`) for managing package updates (in addition to many other
+advanced features). The Anaconda developers (Continuum Analytics) have a lot
+of useful documentation for [installing
+Anaconda](http://docs.continuum.io/anaconda/) and [using
+`conda`](http://conda.pydata.org/docs/). On Windows, Anaconda may not install
+netCDF4. In this case, you can get a prebuilt installer from [Christoph
+Gohlke](http://www.lfd.uci.edu/~gohlke/pythonlibs/): be sure to get the Python
+2.7 ("cp27") 64-bit ("amd64") build for the most recent version. 
+
+Learning the usage of all of these packages is far beyond the scope of this
+document. However, excellent documentation for most of the packages as well as
+full tutorials are [easily discovered](https://google.com).
+
 # Basics of working with GCMS data files
 
 ## Export the data
@@ -17,10 +62,10 @@ how to export your data in these formats.
 
 In order to process these files, run IPython from a terminal (command prompt
 in Windows) in the folder containing the "gcms.py" file (which is the base
-folder for this repository).  There are a (at least) two ways to do this that
-involve the command `cd` (change directory), which can be run from the
-terminal or an IPython session. For example (`$` is the command prompt, `In:`
-is the IPython prompt):
+folder for this repository).  There are (at least) two ways to do this that
+involve the command `cd` (change directory) run from either the terminal or an
+IPython session. For example (`home>$` is the command prompt located in the
+folder "home", `In:` is the IPython prompt):
 
     home>$ ipython
     In: %cd "path-to-gcms-folder"
@@ -38,13 +83,13 @@ take a little practice, but this gets easier very quickly. I'll assume you use
 the second form of this as it makes using the [IPython
 notebook](http://ipython.org/notebook.html) much easier later.
 
-## Read data file
+## Read AIA data files
 
 First of all, you will need to `import` the "gcms.py" file to make the code
 accessible to the IPython environment. This file contains a class called
 `AIAFile` that reads and processes the GCMS files. AIAFile takes one argument,
-which is a string with the file name. This string must have the path
-information if the file is not in the same directory as "gcms.py".
+which is a string with the file name. This string must have the path (i.e.
+folder) information if the file is not in the same directory as "gcms.py".
 Sample data files are contained in a folder called "data". 
 
     In: import gcms
@@ -100,9 +145,9 @@ data.
     In: plt.show()
 
 This should produce a pop-up window with an interactive plot of your TIC.
-(This should be fairly quick. However, sometimes the plot initially appears
-behind the other windows, so be sure to scroll through your windows to find
-it.)
+(This should process should be fairly quick. However, sometimes the plot
+initially appears behind the other windows, which makes it seem like things
+are stuck. Be sure to scroll through your windows to find it.)
 
 ![Total ion chromatogram](./images/tic.png)
 
@@ -118,26 +163,27 @@ called "tic_plot.py".
     plt.plot(data.times, data.tic)
     plt.show()
 
-One difference here is that it is common to do all imports at the top of the
-file, so you know where external code is being brought into play. Run this
-using the `python` command from the terminal.
+It is common practice to do all imports at the top of a Python program. That
+way it is clear exactly what code is being brought into play. Run this new
+file using the `python` command from the terminal.
 
     gcms>$ python tic_plot.py
 
-The window with your plot will appear now; you will not be able to work in the
-terminal until you close this window. Alternatively, you can run this program
+The window with your plot will now appear. (You will not be able to work in the
+terminal until you close this window.) Alternatively, you can run this program
 directly from IPython.
 
     gcms>$ ipython
     In: %run tic_plot.py
 
-This also pops open a new window with the plot. It has the advantage, however,
-that once the window is closed, you are dropped back into an IPython session
-that "remembers" all of the variables and imports that you created in your
-program file. In our example above, once the plot window is closed, your
-IPython session will have `gcms`, `plt`, and `data` (our GCMS AIA file)
-available.  This is very useful if you want to continue to work interactively
-with your data, and it is a great way to remove a bunch of repetitive typing.
+This also pops open a new window containing the interactive plot. It has the
+advantage, however, that once the window is closed, you are dropped back into
+an IPython session that "remembers" all of the variables and imports that you
+created in your program file. In our example above, once the plot window is
+closed, your IPython session will have `gcms`, `plt`, and `data` (our GCMS AIA
+file) available.  This is very useful if you want to continue to work
+interactively with your data, and it is a great way to remove a bunch of
+repetitive typing.
 
 ## Working with multiple data sets
 
