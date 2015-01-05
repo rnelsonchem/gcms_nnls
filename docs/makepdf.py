@@ -9,6 +9,7 @@ try:
     sub.call(['pandoc', '--standalone', '-t', 'latex', '-o', 'USERGUIDE.tex',
             '-r', 'markdown', 'USERGUIDE.md'])
     sub.call(['pdflatex', 'USERGUIDE.tex'])
+    sub.call(['pdflatex', 'USERGUIDE.tex'])
 except:
     print("There was an exception in pandoc or pdflatex.")
 else:
