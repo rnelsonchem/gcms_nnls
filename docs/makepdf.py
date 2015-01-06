@@ -6,12 +6,14 @@ import os
 import subprocess as sub
 
 try:
-    sub.call(['pandoc', '--standalone', '-t', 'latex', '-o', 'USERGUIDE.tex',
-            '-r', 'markdown', 'USERGUIDE.md'])
+#    sub.call(['pandoc', '--standalone', '-t', 'latex', '-o', 'USERGUIDE.tex',
+#            '-r', 'markdown', 'USERGUIDE.md'])
+    sub.call(['rst2latex.py', 'USERGUIDE.rst', 'USERGUIDE.tex'])
     sub.call(['pdflatex', 'USERGUIDE.tex'])
     sub.call(['pdflatex', 'USERGUIDE.tex'])
 except:
-    print("There was an exception in pandoc or pdflatex.")
+#    print("There was an exception in pandoc or pdflatex.")
+    print("There was an exception in rst2latex or pdflatex")
 else:
     tex_files = ['.aux', '.log', '.out', '.tex']
     [os.remove('USERGUIDE' + i) for i in tex_files]
