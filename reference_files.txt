@@ -1,5 +1,0 @@
-# New reference files can be added to the end of this list.
-# Caution: If you change the order of these files, then you need to rerun all
-# calibration and data samples.
-refcpd.txt
-refcpd2.txt
