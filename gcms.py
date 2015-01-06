@@ -93,40 +93,42 @@ class AIAFile(object):
 
         for line in f:
             if line[0] == '#': continue
-            elif 'NAME' in line:
-                sp = line.split(':')
-                name = sp[1].strip()
+            elif line.isspace(): continue
+
+            sp = line.split(':')
+            sp = [i.strip() for i in sp]
+            
+            if sp[0] == "NAME":
+                name = sp[1]
                 self.ref_files.append(name)
                 self.ref_meta[name] = {}
-                self._txt_ref(f, name=name)
+            elif sp[0] == "NUM PEAKS":
+                line = self._txt_ref(f, name=name)
+                if line:
+                    sp = line.split(":")
+                    sp = [i.strip() for i in sp]
+                    self.ref_meta[name][sp[0]] = sp[1]
+            else:
+                self.ref_meta[name][sp[0]] = sp[1]
 
     def _txt_ref(self, fobj, name):
+        inten = []
+        mass = []
+
         for line in fobj:
             if line[0] == '#': continue
-            space = line.isspace()
+            elif line.isspace(): break
+            elif ":" in line: 
+                return line
 
-            if 'NUM PEAK' in line:
-                inten = []
-                mass = []
-                for line in fobj:
-                    if line.isspace(): 
-                        space = True
-                        break
-                    vals = line.split()
-                    mass.append(vals[0])
-                    inten.append(vals[1])
+            vals = line.split()
+            mass.append(vals[0])
+            inten.append(vals[1])
 
-                ref = self._ref_extend(mass, inten)
-                self.ref_array.append(ref)
-                if space:
-                    return None
+        ref = self._ref_extend(mass, inten)
+        self.ref_array.append(ref)
 
-            elif not space:
-                meta = line.split(':')
-                self.ref_meta[name][meta[0]] = meta[1].strip()
-
-            if space:
-                return None
+        return None
 
 
     def _msl_file(self, fname, encoding):
