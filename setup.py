@@ -24,11 +24,8 @@ setup(
     ],
 
     package_data = {
-        'samplefiles': [
-            'datasample1.CDF',
-            'datasample2.CDF',
-            'ref_specs.txt',
-            'ref_specs2.MSL',
+        'gcmstools': [
+            'sampledata/*',
         ],
     },
 )
