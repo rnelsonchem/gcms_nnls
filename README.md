@@ -14,5 +14,5 @@ These programs require Python 2.7 and the following libraries:
 The usage of these programs is outlined in the [online user
 guide](http://rnelsonchem.github.io/gcms_nnls/), which is also [available
 as a
-pdf](https://github.com/rnelsonchem/gcms_nnls/blob/master/docs/_build/latex/gcmstools.pdf?raw=true).
+pdf](https://github.com/rnelsonchem/gcms_nnls/blob/master/gcmstools.pdf?raw=true).
 
