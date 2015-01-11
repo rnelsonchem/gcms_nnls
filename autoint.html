@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Process Sample Data &mdash; gcmstools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="gcmstools 0.1.0 documentation" href="index.html" />
+    <link rel="prev" title="Automated Calibration and Integration" href="calibration.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="calibration.html" title="Automated Calibration and Integration"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">gcmstools 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="process-sample-data">
+<h1>Process Sample Data<a class="headerlink" href="#process-sample-data" title="Permalink to this headline">¶</a></h1>
+<p>Put all of your data files in a folder that must be called &#8216;data&#8217;. Once you&#8217;ve
+done this, run the program &#8216;data.py&#8217; to process every AIA data file in that
+folder using the calibration information that was determined from the steps
+above.</p>
+<p>This program opens the AIA file for the sample and performs non-negative least
+squares analysis of the full data set using the reference spectra that are
+listed in the &#8216;reference_files.txt&#8217; file. Using the calibration information
+that was determined above, it finds the concentrations of those components in
+the sample data. For every reference compound that has associated calibration
+information, a plot is generated that overlays the TIC (gray) and extracted
+reference fit (blue). The title of the plot provides the calibrated
+concentration information. Visual inspection of these files is recommended.</p>
+<p>This file also accepts the same command line arguments as &#8216;calibration.py&#8217;
+from the section above. You will be warned if you try to analyze your data
+with different background information than the calibration samples. This may
+not impact your data much, but it is good to know if you are doing something
+different.</p>
+<p>This file also generates another HDF5 file called &#8216;data.h5&#8217;, which contains
+the integration and concentration information for every component. This
+information is identical to what is printed on the extraction plots above.
+However, this tabular form of the data is a bit more convenient for comparing
+many data sets. See the Calibration section for a recommended HDF5 file
+viewer.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="calibration.html"
+                        title="previous chapter">Automated Calibration and Integration</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/autoint.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="calibration.html" title="Automated Calibration and Integration"
+             >previous</a> |</li>
+        <li><a href="index.html">gcmstools 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Ryan Nelson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

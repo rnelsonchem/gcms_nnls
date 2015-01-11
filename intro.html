@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting started and installation &mdash; gcmstools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="gcmstools 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="Basics of working with GCMS data files" href="basics.html" />
+    <link rel="prev" title="gcmstools Documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="basics.html" title="Basics of working with GCMS data files"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="gcmstools Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">gcmstools 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="getting-started-and-installation">
+<h1>Getting started and installation<a class="headerlink" href="#getting-started-and-installation" title="Permalink to this headline">¶</a></h1>
+<p>This document is broken into a few secions. First of all, there is information
+about getting a Python installation up and running. This is followed by a
+section on the basic usage of these programs to manipulate, plot, and execute
+simple non-negative least squares fits on GCMS datasets. The final section
+covers generating calibration curves and automating data extraction with this
+calibration information. You can skip to that section if all you want to do is
+automate some data extractions. (It is not necessary to understand the data
+manipulation/plotting as that is automated in the final section.)</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="python">
+<h3>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
+<p><em>Gcmstools</em> requires Python and a number of third-party packages. Below is a
+complete list of packages and minium versions:</p>
+<ul class="simple">
+<li>Python &gt;=2.7 (3.x versions not yet supported)</li>
+<li>Pip &gt;=6.0.6 (might be part of new Python releases)</li>
+<li>Setuptools &gt;=11.3.1 (might be part of newer Python releases)</li>
+<li>Numpy &gt;=1.9.1</li>
+<li>Matplotlib &gt;= 1.4.2</li>
+<li>netCDF4 &gt;=1.0.4</li>
+<li>PyTables &gt;=3.1.1</li>
+<li>Scipy &gt;=0.14.0</li>
+<li>Sphinx &gt;=1.2.2 (Optional for documentation.)</li>
+</ul>
+<p>Although not required, IPython (v 2.3.1 tested) provides a very useful
+advanced interactive Python interpreter, and examples in this documentation
+assume that you are using this environment.</p>
+<p>All of these packages can easily be installed using the all-in-one <a class="reference external" href="http://continuum.io/downloads">Anaconda
+Python distribution</a>. It combines a large number of Python packages for
+scientific data analysis and a program (<tt class="docutils literal"><span class="pre">conda</span></tt>) for managing package
+updates (in addition to many other advanced features). The Anaconda developers
+(Continuum Analytics) have a lot of useful documentation for <a class="reference external" href="http://docs.continuum.io/anaconda/">installing
+Anaconda</a> and <a class="reference external" href="http://conda.pydata.org/docs/">using conda</a>. There are other ways to install Python and it&#8217;s
+packages, but for this documentation, it will be assumed that Anaconda is
+being used.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">On Mac/Linux systems, Python is already part of the operating systems.  Do
+not try to install these packages into the builtin Python distribution
+unless you really know what you are doing. You might overwrite and
+important file, which can cause problems for your system.  Confusion
+between the system and Anaconda Python installation is a common source of
+problems for beginners, so make sure that your Anaconda Python is
+&#8220;activated&#8221; before running the commands in this document. (See the
+Anaconda documentation for more information on the activation process.)</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">On Windows, Anaconda may not install netCDF4. In this case, you can get a
+prebuilt installer from <a class="reference external" href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">Christoph Gohlke</a>: be sure to get the Python 2.7
+(&#8220;cp27&#8221;) 64-bit (&#8220;amd64&#8221;) build for the most recent version.</p>
+</div>
+<p>Learning the usage of all of these Python packages is far beyond the scope of
+this document. However, excellent documentation for most of the packages as
+well as full tutorials are <a class="reference external" href="https://google.com">easily discovered</a>.</p>
+</div>
+<div class="section" id="gcmstools">
+<h3>gcmstools<a class="headerlink" href="#gcmstools" title="Permalink to this headline">¶</a></h3>
+<p>To install <em>gcmstools</em> from <a class="reference external" href="https://github.com/rnelsonchem/gcms_nnls">the main repository</a>, there are two options: 1)
+download the source file and install the package or 2) install using <tt class="docutils literal"><span class="pre">git</span></tt>
+(recommended).</p>
+<p><em>Option 1</em></p>
+<p>Download a zip file of the current state of the repository. (Look for the
+button shown below (<a href="#gitzip">Figure  3</a>)at <a class="reference external" href="https://github.com/rnelsonchem/gcms_nnls">the main repository</a>.) Unzip
+this package wherever you&#8217;d like.</p>
+<div class="figure" id="gitzip">
+<img alt="_images/git_zip.png" src="_images/git_zip.png" />
+<p class="caption">Figure 3: The zipfile download button.</p>
+</div>
+<p>From the command line, navigate the newly extracted folder and use <tt class="docutils literal"><span class="pre">pip</span></tt> to
+install the package. (In this case, <em>path-to-gcmstools-folder</em> is the location
+of the newly unzipped <em>gcmstools</em> folder.)</p>
+<div class="code highlight-python"><div class="highlight"><pre>home&gt;$ cd path-to-gcmstools-folder
+gcmstools&gt;$ pip install .
+</pre></div>
+</div>
+<p><em>Option 2 (recommended)</em></p>
+<p>First, install the <a class="reference external" href="http://git-scm.com/">version-control software Git</a>. Now, download and install
+<em>gcmstools</em> with one command.</p>
+<div class="code highlight-python"><div class="highlight"><pre>home&gt;$ pip install git+https://github.com/rnelsonchem/gcms_nnls.git
+</pre></div>
+</div>
+<p>The advantage here is that the same command will update your <em>gcmstools</em>
+installation with any any changes that have been made to the main repository.</p>
+<p><em>Uninstall</em></p>
+<p>Uninstallation of <em>gcmstools</em> is identical regardless of the installation
+method used above.</p>
+<div class="code highlight-python"><div class="highlight"><pre>home&gt;$ pip uninstall gcmstools
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting started and installation</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#python">Python</a></li>
+<li><a class="reference internal" href="#gcmstools">gcmstools</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">gcmstools Documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="basics.html"
+                        title="next chapter">Basics of working with GCMS data files</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/intro.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="basics.html" title="Basics of working with GCMS data files"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="gcmstools Documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">gcmstools 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Ryan Nelson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
