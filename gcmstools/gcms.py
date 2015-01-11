@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 
 import os
 import argparse
@@ -10,16 +10,91 @@ import numpy as np
 import netCDF4 as cdf
 import scipy.optimize as spo
 
-class AIAFile(object):
-    def __init__(self, fname):
-        self.filename = fname
-    
-        self._AIAproc()
+def datafile(fname, refs=None, fit=None):
+    '''Function to construct GCMS file object.
 
+    Arguments
+    ---------
+    * fname: string - The name of the GCMS data file.
+    * refs: string - The name of a reference file for fitting.
+    * fit: string - The type of fitting to use on the data.
+        - 'nnls': non-negative least squares
+    '''
+    objects = []
+    names = []
+    reconstruct = [fname,]
+
+    filetype = fname[-3:].lower()
+    if filetype == 'cdf':
+        objects.append(AIAFile)
+   
+    if refs:
+        reconstruct.append( refs )
+        reffiletype = refs[-3:].lower()
+        if reffiletype == 'txt':
+            objects.append(TxtReference)
+        if reffiletype == 'msl':
+            objects.append(MslReference)
+
+    if fit:
+        fit = fit.lower()
+        reconstruct.append( fit )
+        if fit == 'nnls':
+            objects.append(Nnls)
+
+    # This is a constructor for the dynamic GCMS class
+    newobj = GcmsMeta('Gcms', tuple(objects), {})
+    instance = newobj(fname, refs)
+    instance._reconstruct = reconstruct
+    if refs:
+        instance._ref_file = refs
+    return instance
+
+
+class GcmsMeta(type):
+    '''Generic Metaclass for GCMS data files.'''
+    def __new__(meta, name, parents, dct):
+        return super(GcmsMeta, meta).__new__(meta, name, parents, dct)
+
+
+class GcmsFile(object):
+    '''Base class for all GCMS files.
+    
+    This object is meant to be subclassed and can't be instantiated directly.
+    '''
+    def __init__(self, fname, refs=None):
+        '''
+        Arguments
+        ---------
+        * fname: string - The name of the GCMS data file.
+        * refs: None (default) or string: If string is given, this will be
+        processed as a reference file for fitting.
+        '''
+
+        self.filename = fname
+        self._file_proc()
+        if refs:
+            self._ref_file = refs
+            self.ref_build()
+
+    def __reduce__(self,):
+        save_dict = self.__dict__.copy()
+        
+        rem = ['filename', 'intensity', 'masses', 'tic', 'times']
+        [save_dict.pop(r) for r in rem]
+
+        return (datafile, tuple(self._reconstruct), save_dict)
+
+
+class AIAFile(GcmsFile):
+    '''AIA GCMS File type.
+
+    This subclass reads GCMS data from an AIA (CDF) file type.
+    '''
     def _groupkey(self, x):
         return x[0]
 
-    def _AIAproc(self, ):
+    def _file_proc(self, ):
         data = cdf.Dataset(self.filename)
 
         points = data.variables['point_count'][:]
@@ -77,6 +152,12 @@ class AIAFile(object):
         self.tic = self.intensity.sum(axis=1)
 
 
+class ReferenceFileGeneric(object):
+    '''Generic object that defines refernce file methods.
+    
+    Requires subclass objects that have a _ref_file_proc method that processes
+    a file called _ref_file.
+    '''
     def _ref_extend(self, masses, intensities):
         masses = np.array(masses, dtype=int)
         intensities = np.array(intensities, dtype=float)
@@ -87,8 +168,32 @@ class AIAFile(object):
         spec = np.zeros(self.masses.size, dtype=float)
         spec[masses] = intensities
         return spec/spec.max()
+    
 
-    def _txt_file(self, fname):
+    def ref_build(self, bkg=True, bkg_time=0., encoding='ascii'):
+        self.ref_array = []
+        self.ref_files = []
+        self.ref_meta = {}
+
+        self._ref_file_proc(encoding)
+        
+        if bkg == True:
+            bkg_idx = np.abs(self.times - bkg_time).argmin()
+            bkg = self.intensity[bkg_idx]/self.intensity[bkg_idx].max()
+            self.ref_array.append( bkg )
+            self.ref_files.append( 'Background' )
+            self._bkg_idx = bkg_idx
+        
+        self.ref_array = np.array(self.ref_array)
+
+
+class TxtReference(ReferenceFileGeneric):
+    '''txt Reference File class.
+
+    These functions process a ".txt" reference MS file.
+    '''
+    def _ref_file_proc(self, encoding):
+        fname = self._ref_file
         f = open(fname)
 
         for line in f:
@@ -103,7 +208,7 @@ class AIAFile(object):
                 self.ref_files.append(name)
                 self.ref_meta[name] = {}
             elif sp[0] == "NUM PEAKS":
-                line = self._txt_ref(f, name=name)
+                line = self._ref_entry_proc(f, name=name)
                 if line:
                     sp = line.split(":")
                     sp = [i.strip() for i in sp]
@@ -111,7 +216,7 @@ class AIAFile(object):
             else:
                 self.ref_meta[name][sp[0]] = sp[1]
 
-    def _txt_ref(self, fobj, name):
+    def _ref_entry_proc(self, fobj, name):
         inten = []
         mass = []
 
@@ -130,8 +235,13 @@ class AIAFile(object):
 
         return None
 
+class MslReference(ReferenceFileGeneric):
+    '''msl Reference File class.
 
-    def _msl_file(self, fname, encoding):
+    These functions process a ".MSL" (mass spectral libray) reference MS file.
+    '''
+    def _ref_file_proc(self, encoding):
+        fname = self._ref_file
         regex = r'\(\s*(\d*)\s*(\d*)\)'
         recomp = re.compile(regex)
         
@@ -147,7 +257,7 @@ class AIAFile(object):
                 self._msl_ref(f, name=name, recomp=recomp)
 
 
-    def _msl_ref(self, fobj, name, recomp):
+    def _ref_entry_proc(self, fobj, name, recomp):
         for line in fobj:
             if line[0] == '#': continue
             space = line.isspace()
@@ -174,29 +284,12 @@ class AIAFile(object):
 
             if space:
                 return None
-
             
-    def ref_build(self, ref_file, bkg=True, bkg_time=0., encoding='ascii'):
-        self.ref_array = []
-        self.ref_files = []
-        self.ref_meta = {}
+class Fit(object):
+    pass
 
-        if ref_file[-3:].lower() == 'txt':
-            self._txt_file(ref_file)
-
-        if ref_file[-3:].lower() == 'msl':
-            self._msl_file(ref_file, encoding)
-        
-        if bkg == True:
-            bkg_idx = np.abs(self.times - bkg_time).argmin()
-            bkg = self.intensity[bkg_idx]/self.intensity[bkg_idx].max()
-            self.ref_array.append( bkg )
-            self.ref_files.append( 'Background' )
-            self._bkg_idx = bkg_idx
-        
-        self.ref_array = np.array(self.ref_array)
-
-
+class Nnls(Fit):
+    '''A non-negative least squares fitting object.'''
     def nnls(self, rt_filter=False, rt_win=0.2, rt_adj=0.):
         fits = []
         
@@ -262,6 +355,7 @@ class AIAFile(object):
         
         integral = fit_ms.sum( axis = (0,2) )
         self.integral = integral
+
 
 #### General Functions ####
 
