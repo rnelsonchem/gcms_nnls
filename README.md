@@ -11,6 +11,8 @@ These programs require Python 2.7 and the following libraries:
 * PyTables (v 3.1.1 tested)
 * Scipy (v 0.14.0 tested) 
 
-The usage of these programs is outlined in the user guide ("USERGUIDE.md" or
-"USERGUIDE.pdf"), which is contained in the "docs" folder. 
+The usage of these programs is outlined in the [online user
+guide](http://rnelsonchem.github.io/gcms_nnls/), which is also [available
+as a
+pdf](https://github.com/rnelsonchem/gcms_nnls/blob/master/docs/_build/latex/gcmstools.pdf?raw=true).
 
