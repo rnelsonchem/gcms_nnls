@@ -1,7 +1,7 @@
 # GCMS AIA File Import and Non-negative Least squares
 
 **NOTE** These programs are deprecated. Use
-[gcmstools]((https://github.com/rnelsonchem/gcmstools) instead.
+[gcmstools](https://github.com/rnelsonchem/gcmstools) instead.
 
 These programs serve two roles: 1) to provide a class to read standard GCMS
 AIA data files, and 2) to fit the data using non-negative least squares with a
